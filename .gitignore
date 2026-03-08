@@ -1,0 +1,42 @@
+# Built application files
+*.apk
+*.aar
+*.ap_
+*.aab
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+release/
+
+# Gradle
+.gradle/
+build/
+
+# Local config (SDK path)
+local.properties
+
+# Android Studio
+.idea/
+*.iml
+.cxx/
+
+# Kotlin
+.kotlin/
+
+# Signing
+*.jks
+*.keystore
+
+# Firebase (add per-environment)
+google-services.json
+
+# macOS
+.DS_Store

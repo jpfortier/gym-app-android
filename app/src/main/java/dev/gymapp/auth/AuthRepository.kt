@@ -6,6 +6,8 @@ import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialException
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
@@ -16,12 +18,41 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 
+private const val PREFS_NAME = "auth_prefs"
+private const val KEY_TOKEN = "token"
+
 class AuthRepository(private val context: Context) {
 
     private val credentialManager: CredentialManager? by lazy {
         runCatching { CredentialManager.create(context) }.getOrNull()
     }
-    private var cachedToken: String? = null
+
+    private val prefs by lazy {
+        runCatching {
+            val masterKey = MasterKey.Builder(context)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build()
+            EncryptedSharedPreferences.create(
+                context,
+                PREFS_NAME,
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            )
+        }.getOrNull()
+    }
+
+    private var cachedToken: String? = run {
+        prefs?.getString(KEY_TOKEN, null)
+    }
+
+    private fun persistToken(token: String?) {
+        if (token != null) {
+            prefs?.edit()?.putString(KEY_TOKEN, token)?.apply()
+        } else {
+            prefs?.edit()?.remove(KEY_TOKEN)?.apply()
+        }
+    }
 
     private val _signedOutMessage = MutableStateFlow<String?>(null)
     val signedOutMessage: StateFlow<String?> = _signedOutMessage.asStateFlow()
@@ -78,6 +109,7 @@ class AuthRepository(private val context: Context) {
                 else -> throw IllegalArgumentException("Unexpected credential type")
             }
             cachedToken = idToken
+            persistToken(idToken)
             _signedOutMessage.value = null
             emitAuthState()
             Result.success(idToken)
@@ -90,12 +122,14 @@ class AuthRepository(private val context: Context) {
 
     fun signOut() {
         cachedToken = null
+        persistToken(null)
         _signedOutMessage.value = null
         emitAuthState()
     }
 
     fun signOutDueToAuthFailure(message: String) {
         cachedToken = null
+        persistToken(null)
         _signedOutMessage.value = message
         emitAuthState()
     }
@@ -109,6 +143,7 @@ class AuthRepository(private val context: Context) {
 
     fun setTokenForTesting(token: String) {
         cachedToken = token
+        persistToken(token)
         _signedOutMessage.value = null
         emitAuthState()
     }

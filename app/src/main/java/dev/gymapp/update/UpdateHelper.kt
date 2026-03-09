@@ -23,7 +23,7 @@ class UpdateHelper(private val context: Context) {
 
     private val baseUrl = BuildConfig.UPDATE_BASE_URL.trimEnd('/')
     private val versionUrl = "$baseUrl/version.json"
-    private val apkUrl = "$baseUrl/apk/gym-app-debug.apk"
+    private val apkUrl = "$baseUrl/apk/gym-app-release.apk"
 
     suspend fun checkForUpdate(): UpdateResult = withContext(Dispatchers.IO) {
         try {

@@ -246,15 +246,42 @@ private fun ChatMessageItem(msg: ChatMessage) {
                     }
                 )
         ) {
-            Text(
-                text = msg.content,
-                style = MaterialTheme.typography.bodyMedium,
-                color = if (msg.role == ChatRole.USER) {
-                    MaterialTheme.colorScheme.onPrimaryContainer
-                } else {
-                    MaterialTheme.colorScheme.onSurface
+            if (msg.content == "[Voice message]") {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Mic,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = if (msg.role == ChatRole.USER) {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        }
+                    )
+                    Text(
+                        text = "Voice message",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (msg.role == ChatRole.USER) {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        }
+                    )
                 }
-            )
+            } else {
+                Text(
+                    text = msg.content,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (msg.role == ChatRole.USER) {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    }
+                )
+            }
         }
     }
 }

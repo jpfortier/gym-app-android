@@ -30,6 +30,6 @@ class ChatScreenTest {
         composeTestRule.onNodeWithText("Dev sign-in").performClick()
         composeTestRule.waitUntilAtLeastOneExists(hasText("Tap mic to record"), 10000L)
         composeTestRule.onNodeWithText("Close grip bench 130").performClick()
-        composeTestRule.waitUntilAtLeastOneExists(hasText("[Voice message]"), 15000L)
+        composeTestRule.waitUntilAtLeastOneExists(hasText("Voice message"), 15000L)
     }
 }

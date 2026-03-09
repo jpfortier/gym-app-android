@@ -1,0 +1,28 @@
+build:
+  maxIssues: 0
+  excludeCorrectable: false
+
+config:
+  validation: true
+  warningsAsErrors: false
+  checkExhaustiveness: false
+
+naming:
+  FunctionNaming:
+    active: true
+    ignoreAnnotated: ['Composable', 'Test']
+  ClassNaming:
+    active: true
+
+complexity:
+  LongParameterList:
+    active: true
+    functionThreshold: 7
+    constructorThreshold: 7
+
+style:
+  MagicNumber:
+    active: true
+    excludes: ['**/ui/theme/**', '**/Theme.kt', '**/test/**', '**/*Test.kt']
+  UseRequire:
+    active: true

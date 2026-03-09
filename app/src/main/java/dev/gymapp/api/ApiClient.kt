@@ -10,6 +10,8 @@ import java.util.concurrent.TimeUnit
 
 object ApiClient {
 
+    private const val TIMEOUT_SECONDS = 30L
+
     fun create(tokenProvider: () -> String?): GymApi {
         val authInterceptor = Interceptor { chain ->
             val token = tokenProvider()
@@ -31,9 +33,9 @@ object ApiClient {
         val client = OkHttpClient.Builder()
             .addInterceptor(authInterceptor)
             .addInterceptor(loggingInterceptor)
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
+            .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .writeTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .build()
 
         val retrofit = Retrofit.Builder()

@@ -183,3 +183,4 @@ dev.gymapp/
 
 - **Connections:** See `gym/docs/android-developer-reference.md`. Backend uses HTTPS (mkcert for local). No cleartext.
 - **Instrumentation tests:** (1) AuthRepository: make CredentialManager lazy + nullable so emulator without GMS doesn't crash. (2) Espresso 3.5.1 fails on API 36 with InputManager.getInstance NoSuchMethodException; upgrade to espresso-core 3.7.0. (3) Add @RunWith(AndroidJUnit4::class), testInstrumentationRunner, animationsDisabled.
+- **Detekt:** config/detekt.yml with ignoreAnnotated for Composable/Test, MagicNumber excludes for theme/tests, LongParameterList functionThreshold 7.

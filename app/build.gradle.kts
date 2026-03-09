@@ -2,6 +2,11 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("io.gitlab.arturbosch.detekt")
+}
+
+detekt {
+    config.setFrom(files("${rootProject.projectDir}/config/detekt.yml"))
 }
 
 android {

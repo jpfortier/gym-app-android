@@ -51,11 +51,10 @@ class AuthRepository(private val context: Context) {
             val credential = result.credential
             val idToken = when (credential) {
                 is CustomCredential -> {
-                    if (credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
-                        GoogleIdTokenCredential.createFrom(credential.data).idToken
-                    } else {
-                        throw IllegalArgumentException("Unexpected credential type: ${credential.type}")
+                    require(credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                        "Unexpected credential type: ${credential.type}"
                     }
+                    GoogleIdTokenCredential.createFrom(credential.data).idToken
                 }
                 else -> throw IllegalArgumentException("Unexpected credential type")
             }

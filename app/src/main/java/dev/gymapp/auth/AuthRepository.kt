@@ -15,13 +15,21 @@ import kotlinx.coroutines.withContext
 
 class AuthRepository(private val context: Context) {
 
-    private val credentialManager = CredentialManager.create(context)
+    private val credentialManager: CredentialManager? by lazy {
+        runCatching { CredentialManager.create(context) }.getOrNull()
+    }
     private var cachedToken: String? = null
 
     val currentToken: String?
         get() = cachedToken
 
     suspend fun signIn(): Result<String> = withContext(Dispatchers.IO) {
+        val cm = credentialManager
+        if (cm == null) {
+            return@withContext Result.failure(
+                IllegalStateException("Credential Manager not available (e.g. emulator without Google Play)")
+            )
+        }
         val serverClientId = BuildConfig.GOOGLE_CLIENT_ID_WEB
         if (serverClientId.isBlank()) {
             return@withContext Result.failure(
@@ -39,7 +47,7 @@ class AuthRepository(private val context: Context) {
             .build()
 
         try {
-            val result = credentialManager.getCredential(context, request)
+            val result = cm.getCredential(context, request)
             val credential = result.credential
             val idToken = when (credential) {
                 is CustomCredential -> {

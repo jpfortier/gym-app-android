@@ -11,7 +11,7 @@
 | **Target SDK** | 34 |
 | **HTTP** | OkHttp + Retrofit (or Ktor client) |
 | **Auth** | Google Sign-In (credential manager) |
-| **Voice** | Android SpeechRecognizer + backend Whisper fallback |
+| **Voice** | Record audio → POST to backend (Whisper). m4a, VAD. |
 | **Testing** | Compose Testing (ui-test-junit4), JUnit 4 |
 | **Automation** | Mobile MCP (for AI-driven app testing) |
 
@@ -96,6 +96,68 @@ dev.gymapp/
 
 ---
 
+## Full App Implementation Plan (Mar 2026)
+
+**Source:** Q&A with JP. Reference: `gym/docs/android-developer-reference.md`.
+
+### Decisions Summary
+
+| Area | Decision |
+|------|----------|
+| **Sign-in screen** | Logo (logo.png) + "Sign in with Google" button only |
+| **Post sign-in** | Chat screen first |
+| **Chat input** | Voice primary (mic); keyboard icon in bottom corner to switch to text mode |
+| **Chat layout** | Conversation history: user right + bubbles, software left + no bubbles |
+| **Navigation** | Bottom-left icon → Dashboard |
+| **Dashboard** | 2×2 grid: 1 real tile (Latest PR), 3 placeholders. Display-only, no tap actions |
+| **Errors** | Snackbar; on tap show full debug info (error, code, error_token) for dev |
+| **401 handling** | Try refresh silently; if fails, redirect to sign-in with "signed out" message |
+| **Voice** | Record audio, POST to backend (no SpeechRecognizer). m4a format. VAD auto-stop after 1.5s silence (fixed, easy to change in code) |
+
+### High-Level Task Breakdown
+
+1. **Sign-in screen**
+   - Add logo.png to drawable. Screen: logo + "Sign in with Google" button.
+   - On success → navigate to Chat.
+   - Support "signed out" message when redirected after 401.
+
+2. **Auth + 401 flow**
+   - On 401: attempt token refresh (Credential Manager). If fails → sign out, navigate to sign-in with message.
+   - Add interceptor or callback for 401 handling.
+
+3. **Chat screen (main)**
+   - Conversation list: user messages right + bubbles, software left + no bubbles.
+   - Input bar: mic (default) + keyboard icon to switch modes.
+   - Text mode: text field, send button.
+   - Voice mode: mic button, record → VAD stop (1.5s silence) → POST audio_base64 (m4a).
+   - Handle all chat intents: log, query, correction, remove, restore, note, unknown. Render response appropriately.
+
+4. **Audio recording**
+   - Record to m4a (AAC). Implement VAD with 1.5s silence threshold.
+   - Encode to base64, POST to /chat with audio_format: "m4a".
+
+5. **Dashboard**
+   - Bottom-left icon on chat opens Dashboard.
+   - 2×2 grid: Latest PR (real, from GET /prs), 3 placeholder tiles.
+   - Display-only.
+
+6. **Error handling**
+   - Snackbar on API failure. On tap: expand/show error, code, error_token.
+
+7. **Navigation**
+   - Single Activity, Compose navigation: SignIn ↔ Chat ↔ Dashboard.
+   - Chat is default after sign-in. Dashboard via bottom-left icon.
+
+### Success Criteria (per task)
+
+- **Sign-in:** Logo visible, button triggers Google Sign-In, on success → Chat.
+- **401 flow:** 401 triggers refresh attempt; on failure, sign out and show message on sign-in.
+- **Chat:** Messages display correctly, text send works, voice record+send works.
+- **Dashboard:** Opens from icon, shows Latest PR + 3 placeholders.
+- **Errors:** Snackbar appears; tap shows debug details.
+
+---
+
 ## Project Status Board
 
 - [x] Stack plan documented
@@ -104,8 +166,12 @@ dev.gymapp/
 - [x] Base Compose app (builds when SDK present)
 - [x] Base URL config (BuildConfig)
 - [x] Technology foundation (deps, api, auth)
-- [ ] First screen (chat/home)
-- [ ] API client + auth wired to UI
+- [x] Sign-in screen (logo + Google button)
+- [ ] Auth + 401 flow (refresh, redirect with message)
+- [ ] Chat screen (conversation, text + voice input)
+- [ ] Audio recording (m4a, VAD 1.5s)
+- [ ] Dashboard (2×2 grid, Latest PR + placeholders)
+- [ ] Error handling (snackbar + debug on tap)
 
 ## Executor's Feedback or Assistance Requests
 
@@ -116,3 +182,4 @@ dev.gymapp/
 ## Lessons
 
 - **Connections:** See `gym/docs/android-developer-reference.md`. Backend uses HTTPS (mkcert for local). No cleartext.
+- **Instrumentation tests:** (1) AuthRepository: make CredentialManager lazy + nullable so emulator without GMS doesn't crash. (2) Espresso 3.5.1 fails on API 36 with InputManager.getInstance NoSuchMethodException; upgrade to espresso-core 3.7.0. (3) Add @RunWith(AndroidJUnit4::class), testInstrumentationRunner, animationsDisabled.

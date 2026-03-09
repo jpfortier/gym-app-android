@@ -167,14 +167,16 @@ dev.gymapp/
 - [x] Base URL config (BuildConfig)
 - [x] Technology foundation (deps, api, auth)
 - [x] Sign-in screen (logo + Google button)
-- [ ] Auth + 401 flow (refresh, redirect with message)
-- [ ] Chat screen (conversation, text + voice input)
-- [ ] Audio recording (m4a, VAD 1.5s)
-- [ ] Dashboard (2×2 grid, Latest PR + placeholders)
-- [ ] Error handling (snackbar + debug on tap)
+- [x] Auth + 401 flow (refresh, redirect with message)
+- [x] Chat screen (conversation, text + voice input)
+- [x] Audio recording (m4a, VAD 1.5s)
+- [x] Dashboard (2×2 grid, Latest PR + placeholders)
+- [x] Error handling (snackbar + debug on tap)
 
 ## Executor's Feedback or Assistance Requests
 
+- **Phase 6 complete:** Error handling implemented. Snackbar on API failure; tap "Details" shows dialog with error, code, error_token. ChatViewModel and DashboardViewModel parse ApiError via ErrorBodyParser.
+- **Dev mode:** GET /dev/token (api.md) returns `dev:<email>`. Debug-only "Dev sign-in" button on SignInScreen. Instrumentation tests use dev token. Debug sample buttons (m4a from gym/samples/audio) send audio to chat. Tests: signOut() in @Before so SignIn tests see sign-in screen.
 - **Android SDK required:** Build succeeds only when `local.properties` has valid `sdk.dir` pointing to Android SDK.
 - **Base URL:** Debug (emulator) = `https://10.0.2.2:8081`, Release = `https://gym-app.fly.dev`, Physical = `https://<mac-ip>:8081`. See `gym/docs/android-developer-reference.md`.
 - **Mobile MCP:** Now working (full path + PATH env in mcp.json). Verified: app launches, screenshot captured app content (Gym App, API URL, Health error). CLEARTEXT fix applied.

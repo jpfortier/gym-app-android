@@ -1,8 +1,12 @@
 package dev.gymapp.api
 
 import dev.gymapp.BuildConfig
+import kotlinx.coroutines.runBlocking
+import okhttp3.Authenticator
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.Response
+import okhttp3.Route
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -11,8 +15,13 @@ import java.util.concurrent.TimeUnit
 object ApiClient {
 
     private const val TIMEOUT_SECONDS = 30L
+    private const val HTTP_UNAUTHORIZED = 401
 
-    fun create(tokenProvider: () -> String?): GymApi {
+    fun create(
+        tokenProvider: () -> String?,
+        refreshToken: suspend () -> Result<String>,
+        onAuthFailure: (String) -> Unit
+    ): GymApi {
         val authInterceptor = Interceptor { chain ->
             val token = tokenProvider()
             val request = chain.request().newBuilder()
@@ -20,6 +29,19 @@ object ApiClient {
                 request.addHeader("Authorization", "Bearer $token")
             }
             chain.proceed(request.build())
+        }
+
+        val authenticator = Authenticator { _: Route?, response: Response ->
+            if (response.code != HTTP_UNAUTHORIZED) return@Authenticator null
+            val newToken = runBlocking { refreshToken().getOrNull() }
+            if (newToken != null) {
+                response.request.newBuilder()
+                    .header("Authorization", "Bearer $newToken")
+                    .build()
+            } else {
+                onAuthFailure("Your session expired. Please sign in again.")
+                null
+            }
         }
 
         val loggingInterceptor = HttpLoggingInterceptor().apply {
@@ -32,6 +54,7 @@ object ApiClient {
 
         val client = OkHttpClient.Builder()
             .addInterceptor(authInterceptor)
+            .authenticator(authenticator)
             .addInterceptor(loggingInterceptor)
             .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)

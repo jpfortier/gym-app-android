@@ -11,6 +11,9 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
 import dev.gymapp.BuildConfig
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 
 class AuthRepository(private val context: Context) {
@@ -20,10 +23,26 @@ class AuthRepository(private val context: Context) {
     }
     private var cachedToken: String? = null
 
+    private val _signedOutMessage = MutableStateFlow<String?>(null)
+    val signedOutMessage: StateFlow<String?> = _signedOutMessage.asStateFlow()
+
+    private val _authState = MutableStateFlow(AuthState(cachedToken != null, null))
+    val authState: StateFlow<AuthState> = _authState.asStateFlow()
+
     val currentToken: String?
         get() = cachedToken
 
-    suspend fun signIn(): Result<String> = withContext(Dispatchers.IO) {
+    private fun emitAuthState() {
+        _authState.value = AuthState(cachedToken != null, _signedOutMessage.value)
+    }
+
+    data class AuthState(val isSignedIn: Boolean, val signedOutMessage: String?)
+
+    suspend fun signIn(): Result<String> = signInInternal(filterByAuthorizedAccounts = false)
+
+    suspend fun refreshToken(): Result<String> = signInInternal(filterByAuthorizedAccounts = true)
+
+    private suspend fun signInInternal(filterByAuthorizedAccounts: Boolean): Result<String> = withContext(Dispatchers.IO) {
         val cm = credentialManager
         if (cm == null) {
             return@withContext Result.failure(
@@ -38,7 +57,7 @@ class AuthRepository(private val context: Context) {
         }
 
         val googleIdOption = GetGoogleIdOption.Builder()
-            .setFilterByAuthorizedAccounts(false)
+            .setFilterByAuthorizedAccounts(filterByAuthorizedAccounts)
             .setServerClientId(serverClientId)
             .build()
 
@@ -59,6 +78,8 @@ class AuthRepository(private val context: Context) {
                 else -> throw IllegalArgumentException("Unexpected credential type")
             }
             cachedToken = idToken
+            _signedOutMessage.value = null
+            emitAuthState()
             Result.success(idToken)
         } catch (e: GetCredentialException) {
             Result.failure(e)
@@ -69,11 +90,26 @@ class AuthRepository(private val context: Context) {
 
     fun signOut() {
         cachedToken = null
+        _signedOutMessage.value = null
+        emitAuthState()
+    }
+
+    fun signOutDueToAuthFailure(message: String) {
+        cachedToken = null
+        _signedOutMessage.value = message
+        emitAuthState()
+    }
+
+    fun clearSignedOutMessage() {
+        _signedOutMessage.value = null
+        emitAuthState()
     }
 
     fun isSignedIn(): Boolean = cachedToken != null
 
     fun setTokenForTesting(token: String) {
         cachedToken = token
+        _signedOutMessage.value = null
+        emitAuthState()
     }
 }

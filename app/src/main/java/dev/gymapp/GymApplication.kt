@@ -16,6 +16,10 @@ class GymApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         authRepository = AuthRepository(this)
-        api = ApiClient.create { authRepository.currentToken }
+        api = ApiClient.create(
+            tokenProvider = { authRepository.currentToken },
+            refreshToken = { authRepository.refreshToken() },
+            onAuthFailure = { authRepository.signOutDueToAuthFailure(it) }
+        )
     }
 }

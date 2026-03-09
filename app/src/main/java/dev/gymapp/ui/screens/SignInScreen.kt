@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,7 +22,8 @@ import dev.gymapp.R
 @Composable
 fun SignInScreen(
     signedOutMessage: String? = null,
-    onSignIn: () -> Unit
+    onSignIn: () -> Unit,
+    onDevSignIn: (() -> Unit)? = null
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -48,6 +50,16 @@ fun SignInScreen(
 
         Button(onClick = onSignIn) {
             Text("Sign in with Google")
+        }
+
+        if (onDevSignIn != null) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = onDevSignIn,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+            ) {
+                Text("Dev sign-in")
+            }
         }
     }
 }

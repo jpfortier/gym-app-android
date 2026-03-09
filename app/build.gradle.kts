@@ -22,6 +22,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "BASE_URL", "\"https://gym-app.fly.dev\"")
         buildConfigField("String", "GOOGLE_CLIENT_ID_WEB", "\"259179195778-4ndapfrnm2fc1q0vp0qgvbsqm13ini6o.apps.googleusercontent.com\"")
+        buildConfigField("String", "UPDATE_BASE_URL", "\"https://pub-0b1c5314d42240e5859bcab509f9626f.r2.dev\"")
     }
 
     testOptions {
@@ -62,6 +63,16 @@ android {
     }
 }
 
+tasks.register("writeVersionJson") {
+    doLast {
+        val versionCode = android.defaultConfig.versionCode
+        val versionName = android.defaultConfig.versionName
+        val json = """{"versionCode":$versionCode,"versionName":"$versionName"}"""
+        file("${rootProject.layout.projectDirectory}/version.json").writeText(json)
+        println("Wrote version.json: versionCode=$versionCode, versionName=$versionName")
+    }
+}
+
 dependencies {
     implementation(platform("androidx.compose:compose-bom:2024.02.00"))
     implementation("androidx.activity:activity-compose:1.8.2")
@@ -69,6 +80,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.core:core-ktx:1.12.0")
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")

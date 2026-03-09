@@ -3,7 +3,6 @@ package dev.gymapp
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.waitUntilAtLeastOneExists
@@ -16,7 +15,7 @@ import org.junit.runner.RunWith
 
 @OptIn(ExperimentalTestApi::class)
 @RunWith(AndroidJUnit4::class)
-class SignInScreenTest {
+class ChatScreenTest {
 
     @get:Rule
     val composeTestRule = createAndroidComposeRule<MainActivity>()
@@ -27,18 +26,10 @@ class SignInScreenTest {
     }
 
     @Test
-    fun signInScreen_displaysSignInButton() {
-        composeTestRule.onNodeWithText("Sign in with Google").assertExists()
-    }
-
-    @Test
-    fun signInScreen_displaysLogo() {
-        composeTestRule.onNodeWithContentDescription("Gym App logo").assertExists()
-    }
-
-    @Test
-    fun signInScreen_devSignIn_navigatesToChat() {
+    fun chatScreen_devSignIn_sendSample_receivesResponse() {
         composeTestRule.onNodeWithText("Dev sign-in").performClick()
         composeTestRule.waitUntilAtLeastOneExists(hasText("Tap mic to record"), 10000L)
+        composeTestRule.onNodeWithText("Close grip bench 130").performClick()
+        composeTestRule.waitUntilAtLeastOneExists(hasText("[Voice message]"), 15000L)
     }
 }

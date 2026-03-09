@@ -2,6 +2,7 @@ package dev.gymapp.api
 
 import dev.gymapp.api.models.ChatRequest
 import dev.gymapp.api.models.ChatResponse
+import dev.gymapp.api.models.DevTokenResponse
 import dev.gymapp.api.models.ExerciseVariant
 import dev.gymapp.api.models.HealthResponse
 import dev.gymapp.api.models.Pr
@@ -20,6 +21,9 @@ interface GymApi {
 
     @GET("health")
     suspend fun health(): Response<HealthResponse>
+
+    @GET("dev/token")
+    suspend fun devToken(@Query("email") email: String? = null): Response<DevTokenResponse>
 
     @GET("me")
     suspend fun me(): Response<User>

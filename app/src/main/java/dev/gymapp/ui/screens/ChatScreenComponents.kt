@@ -14,8 +14,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,7 +27,10 @@ import dev.gymapp.ui.chat.ChatMessage
 import dev.gymapp.ui.chat.ChatRole
 
 @Composable
-fun ChatMessageItem(msg: ChatMessage) {
+fun ChatMessageItem(
+    msg: ChatMessage,
+    showSpinner: Boolean = false
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = if (msg.role == ChatRole.USER) Arrangement.End else Arrangement.Start
@@ -47,23 +51,35 @@ fun ChatMessageItem(msg: ChatMessage) {
                     }
                 )
         ) {
-            if (msg.content == "[Voice message]") {
+            if (msg.content == "[Voice message]" || showSpinner) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Mic,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = if (msg.role == ChatRole.USER) {
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.onSurface
-                        }
-                    )
+                    if (showSpinner) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp,
+                            color = if (msg.role == ChatRole.USER) {
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.onSurface
+                            }
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Mic,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = if (msg.role == ChatRole.USER) {
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.onSurface
+                            }
+                        )
+                    }
                     Text(
-                        text = "Voice message",
+                        text = if (showSpinner) "Sending…" else "Voice message",
                         style = MaterialTheme.typography.bodyMedium,
                         color = if (msg.role == ChatRole.USER) {
                             MaterialTheme.colorScheme.onPrimaryContainer
@@ -88,28 +104,22 @@ fun ChatMessageItem(msg: ChatMessage) {
 }
 
 @Composable
-fun FloatingMic(
+fun BottomBarMic(
     isRecording: Boolean,
     onVoiceTap: () -> Unit
 ) {
-    androidx.compose.foundation.layout.Box(
+    IconButton(
+        onClick = onVoiceTap,
         modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        contentAlignment = Alignment.BottomCenter
+            .size(56.dp)
+            .background(MaterialTheme.colorScheme.primary, CircleShape)
     ) {
-        FloatingActionButton(
-            onClick = onVoiceTap,
-            modifier = Modifier.size(64.dp),
-            shape = CircleShape,
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary
-        ) {
-            Icon(
-                imageVector = if (isRecording) Icons.Default.Stop else Icons.Default.Mic,
-                contentDescription = if (isRecording) "Stop recording" else "Record voice",
-                modifier = Modifier.size(28.dp)
-            )
-        }
+        Icon(
+            imageVector = if (isRecording) Icons.Default.Stop else Icons.Default.Mic,
+            contentDescription = if (isRecording) "Stop recording" else "Record voice",
+            modifier = Modifier.size(28.dp),
+            tint = MaterialTheme.colorScheme.onPrimary
+        )
     }
 }
+

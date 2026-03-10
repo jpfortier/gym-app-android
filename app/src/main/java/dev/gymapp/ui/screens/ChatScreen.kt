@@ -3,6 +3,7 @@ package dev.gymapp.ui.screens
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -36,7 +37,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -55,6 +55,7 @@ import dev.gymapp.BuildConfig
 import dev.gymapp.PrTracksApplication
 import dev.gymapp.audio.AudioRecorder
 import dev.gymapp.api.models.ApiError
+import dev.gymapp.ui.chat.ChatRole
 import dev.gymapp.ui.chat.ChatViewModel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
@@ -158,53 +159,79 @@ fun ChatScreen(
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            TopAppBar(
-                title = { },
-                navigationIcon = {
-                    IconButton(
-                        onClick = onOpenDashboard,
-                        modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
-                    ) {
-                        Icon(Icons.Default.Dashboard, contentDescription = "Dashboard")
-                    }
+        bottomBar = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = onOpenDashboard,
+                    modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
+                ) {
+                    Icon(Icons.Default.Dashboard, contentDescription = "Dashboard")
                 }
-            )
+                BottomBarMic(
+                    isRecording = isRecording,
+                    onVoiceTap = {
+                        if (isRecording) {
+                            scope.launch {
+                                audioRecorder.stopAndGetBase64().onSuccess { base64 ->
+                                    viewModel.sendAudio(base64)
+                                }
+                                isRecording = false
+                            }
+                        } else {
+                            isRecording = true
+                            permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                        }
+                    }
+                )
+            }
         }
     ) { padding ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            Column(
-                modifier = Modifier.fillMaxSize()
+            val lastMsg = state.messages.lastOrNull()
+            val isPendingVoice = state.isLoading &&
+                lastMsg != null &&
+                lastMsg.role == ChatRole.USER &&
+                lastMsg.content == "[Voice message]"
+
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                state = rememberLazyListState(),
+                contentPadding = PaddingValues(top = 16.dp, bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                LazyColumn(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    state = rememberLazyListState(),
-                    contentPadding = PaddingValues(top = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(state.messages, key = { it.id }) { msg ->
-                        ChatMessageItem(msg)
-                    }
-                    if (state.isLoading) {
-                        item {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                            }
+                items(state.messages, key = { it.id }) { msg ->
+                    ChatMessageItem(
+                        msg = msg,
+                        showSpinner = msg == lastMsg && isPendingVoice
+                    )
+                }
+                if (state.isLoading && !isPendingVoice) {
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
                         }
                     }
                 }
+            }
 
-                if (BuildConfig.DEBUG) {
+            if (BuildConfig.DEBUG) {
                     val sampleLabels = mapOf(
                         "20260306_133927.m4a" to "Close grip bench 130",
                         "20260306_133935.m4a" to "Query close grip",
@@ -237,22 +264,5 @@ fun ChatScreen(
                     }
                 }
             }
-            FloatingMic(
-                isRecording = isRecording,
-                onVoiceTap = {
-                    if (isRecording) {
-                        scope.launch {
-                            audioRecorder.stopAndGetBase64().onSuccess { base64 ->
-                                viewModel.sendAudio(base64)
-                            }
-                            isRecording = false
-                        }
-                    } else {
-                        isRecording = true
-                        permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                    }
-                }
-            )
         }
     }
-}

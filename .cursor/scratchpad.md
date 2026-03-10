@@ -110,6 +110,8 @@ dev.gymapp/
 ## Executor's Feedback or Assistance Requests
 
 - **Android SDK required:** Build succeeds only when `local.properties` has valid `sdk.dir` pointing to Android SDK.
+- **Backend changes needed for full chat flow:**
+  - `GET /chat/history` – returns list of `{role, content, created_at}` messages (currently 404). After each send, app reloads history so transcriptions are always correct.
 - **Base URL:** Debug (emulator) = `https://10.0.2.2:8081`, Release = `https://gym-app.fly.dev`, Physical = `https://<mac-ip>:8081`. See `gym/docs/android-developer-reference.md`.
 - **Mobile MCP:** Now working (full path + PATH env in mcp.json). Verified: app launches, screenshot captured app content (Gym App, API URL, Health error). CLEARTEXT fix applied.
 

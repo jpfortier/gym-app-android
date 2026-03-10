@@ -12,14 +12,14 @@ class MainActivityTest {
     val composeTestRule = createAndroidComposeRule<MainActivity>()
 
     @Test
-    fun app_displaysGymApp() {
+    fun app_displaysChatScreen() {
         composeTestRule.waitForIdle()
-        composeTestRule.onNodeWithText("Gym App", substring = true).assertExists()
+        composeTestRule.onNodeWithText("Type a message...", substring = true).assertExists()
     }
 
     @Test
-    fun app_displaysApiBaseUrl() {
+    fun app_hasMicrophone() {
         composeTestRule.waitForIdle()
-        composeTestRule.onNodeWithText("10.0.2.2", substring = true).assertExists()
+        composeTestRule.onNodeWithText("Microphone", substring = true).assertExists()
     }
 }

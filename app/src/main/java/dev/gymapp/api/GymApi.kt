@@ -1,5 +1,6 @@
 package dev.gymapp.api
 
+import dev.gymapp.api.models.ChatHistoryMessage
 import dev.gymapp.api.models.ChatRequest
 import dev.gymapp.api.models.ChatResponse
 import dev.gymapp.api.models.HealthResponse
@@ -19,6 +20,9 @@ interface GymApi {
 
     @GET("me")
     suspend fun me(): Response<User>
+
+    @GET("chat/history")
+    suspend fun chatHistory(): Response<List<ChatHistoryMessage>>
 
     @POST("chat")
     suspend fun chat(@Body request: ChatRequest): Response<ChatResponse>

@@ -27,4 +27,4 @@ For AI-driven app testing, add [mobile-mcp](https://github.com/mobile-next/mobil
 
 ## API
 
-Backend runs on Fly.io. See [gym-app docs/api.md](https://github.com/jpfortier/gym-app/blob/main/docs/api.md).
+Backend runs on Fly.io. See [docs/backend-endpoints.md](docs/backend-endpoints.md) for the endpoint list. Full docs: [gym-app docs/api.md](https://github.com/jpfortier/gym-app/blob/main/docs/api.md).

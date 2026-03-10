@@ -1,4 +1,4 @@
-# Gym App Android - Scratchpad
+# PR Tracks Android - Scratchpad
 
 ## Stack Plan
 
@@ -180,7 +180,7 @@ dev.gymapp/
 - **Dev mode:** GET /dev/token (api.md) returns `dev:<email>`. Debug-only "Dev sign-in" button on SignInScreen. Instrumentation tests use dev token. Debug sample buttons (m4a from gym/samples/audio) send audio to chat. Tests: signOut() in @Before so SignIn tests see sign-in screen.
 - **Android SDK required:** Build succeeds only when `local.properties` has valid `sdk.dir` pointing to Android SDK.
 - **Base URL:** Debug (emulator) = `https://10.0.2.2:8081`, Release = `https://gym-app.fly.dev`, Physical = `https://<mac-ip>:8081`. See `gym/docs/android-developer-reference.md`.
-- **Mobile MCP:** Now working (full path + PATH env in mcp.json). Verified: app launches, screenshot captured app content (Gym App, API URL, Health error). CLEARTEXT fix applied.
+- **Mobile MCP:** Now working (full path + PATH env in mcp.json). Verified: app launches, screenshot captured app content (PR Tracks, API URL, Health error). CLEARTEXT fix applied.
 
 ## Lessons
 

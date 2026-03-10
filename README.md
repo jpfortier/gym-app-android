@@ -1,4 +1,4 @@
-# Gym App (Android)
+# PR Tracks (Android)
 
 Voice-first workout logging for Android. Backend: [gym-app](https://github.com/jpfortier/gym-app).
 

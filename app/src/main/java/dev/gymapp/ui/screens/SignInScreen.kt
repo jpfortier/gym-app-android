@@ -68,7 +68,7 @@ fun SignInScreen(
             ) {
                 Image(
                     painter = painterResource(R.drawable.logo),
-                    contentDescription = "Gym App logo",
+                    contentDescription = "PR Tracks logo",
                     contentScale = ContentScale.Fit,
                     modifier = Modifier.fillMaxWidth(0.9f)
                 )

@@ -1,4 +1,4 @@
-# Gym App API — Android Client Reference
+# PR Tracks API — Android Client Reference
 
 Reference for the Android app. All endpoints require authentication unless noted.
 

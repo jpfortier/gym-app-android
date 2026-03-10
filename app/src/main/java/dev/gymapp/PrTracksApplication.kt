@@ -5,7 +5,7 @@ import dev.gymapp.api.ApiClient
 import dev.gymapp.api.GymApi
 import dev.gymapp.auth.AuthRepository
 
-class GymApplication : Application() {
+class PrTracksApplication : Application() {
 
     lateinit var authRepository: AuthRepository
         private set

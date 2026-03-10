@@ -52,7 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import android.util.Base64
 import dev.gymapp.BuildConfig
-import dev.gymapp.GymApplication
+import dev.gymapp.PrTracksApplication
 import dev.gymapp.audio.AudioRecorder
 import dev.gymapp.api.models.ApiError
 import dev.gymapp.ui.chat.ChatViewModel
@@ -64,7 +64,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
-    app: GymApplication = LocalContext.current.applicationContext as GymApplication,
+    app: PrTracksApplication = LocalContext.current.applicationContext as PrTracksApplication,
     onOpenDashboard: () -> Unit = {},
     viewModel: ChatViewModel = viewModel(
         factory = object : androidx.lifecycle.ViewModelProvider.Factory {

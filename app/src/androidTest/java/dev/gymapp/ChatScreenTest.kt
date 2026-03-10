@@ -24,7 +24,7 @@ class ChatScreenTest {
 
     @Before
     fun signOut() {
-        (ApplicationProvider.getApplicationContext() as GymApplication).authRepository.signOut()
+        (ApplicationProvider.getApplicationContext() as PrTracksApplication).authRepository.signOut()
     }
 
     @Test

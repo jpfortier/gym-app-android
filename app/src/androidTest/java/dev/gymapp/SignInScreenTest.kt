@@ -1,7 +1,7 @@
 package dev.gymapp
 
 import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -39,6 +39,6 @@ class SignInScreenTest {
     @Test
     fun signInScreen_devSignIn_navigatesToChat() {
         composeTestRule.onNodeWithContentDescription("Dev sign-in").performClick()
-        composeTestRule.waitUntilAtLeastOneExists(hasText("Tap mic to record"), 10000L)
+        composeTestRule.waitUntilAtLeastOneExists(hasContentDescription("Record voice"), 10000L)
     }
 }

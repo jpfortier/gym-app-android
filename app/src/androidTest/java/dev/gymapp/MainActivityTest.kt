@@ -1,7 +1,7 @@
 package dev.gymapp
 
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Before
@@ -22,6 +22,6 @@ class MainActivityTest {
 
     @Test
     fun app_launchesWithSignInScreen() {
-        composeTestRule.onNodeWithText("Sign in with Google").assertExists()
+        composeTestRule.onNodeWithContentDescription("Sign in with Google").assertExists()
     }
 }

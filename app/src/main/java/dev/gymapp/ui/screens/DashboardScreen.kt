@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
@@ -45,6 +46,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import dev.gymapp.BuildConfig
 import dev.gymapp.GymApplication
 import dev.gymapp.api.models.ApiError
@@ -199,7 +201,8 @@ fun DashboardScreen(
                 DashboardTile(
                     modifier = Modifier.weight(1f),
                     title = "Latest PR",
-                    content = state.latestPr?.let { "${it.exerciseName} ${it.weight}×${it.reps}" } ?: "—"
+                    content = state.latestPr?.let { "${it.exerciseName} ${it.weight}×${it.reps}" } ?: "—",
+                    imageBytes = state.latestPrImage
                 )
                 DashboardTile(
                     modifier = Modifier.weight(1f),
@@ -238,7 +241,8 @@ fun DashboardScreen(
 private fun DashboardTile(
     modifier: Modifier = Modifier,
     title: String,
-    content: String
+    content: String,
+    imageBytes: ByteArray? = null
 ) {
     Card(
         modifier = modifier.size(160.dp),
@@ -255,6 +259,16 @@ private fun DashboardTile(
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            if (imageBytes != null) {
+                AsyncImage(
+                    model = imageBytes,
+                    contentDescription = "PR image",
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    contentScale = ContentScale.Fit
+                )
+            }
             Text(
                 text = content,
                 style = MaterialTheme.typography.bodyMedium,

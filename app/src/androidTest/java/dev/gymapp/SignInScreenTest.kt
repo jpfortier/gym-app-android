@@ -28,7 +28,7 @@ class SignInScreenTest {
 
     @Test
     fun signInScreen_displaysSignInButton() {
-        composeTestRule.onNodeWithText("Sign in with Google").assertExists()
+        composeTestRule.onNodeWithContentDescription("Sign in with Google").assertExists()
     }
 
     @Test
@@ -38,7 +38,7 @@ class SignInScreenTest {
 
     @Test
     fun signInScreen_devSignIn_navigatesToChat() {
-        composeTestRule.onNodeWithText("Dev sign-in").performClick()
+        composeTestRule.onNodeWithContentDescription("Dev sign-in").performClick()
         composeTestRule.waitUntilAtLeastOneExists(hasText("Tap mic to record"), 10000L)
     }
 }

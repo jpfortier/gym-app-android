@@ -66,6 +66,8 @@ class AudioRecorder(private val context: Context) {
 
     fun isRecording(): Boolean = mediaRecorder != null
 
+    fun getMaxAmplitude(): Int = (mediaRecorder?.runCatching { maxAmplitude })?.getOrNull() ?: 0
+
     companion object {
         private const val SAMPLE_RATE = 44100
         private const val BIT_RATE = 128000

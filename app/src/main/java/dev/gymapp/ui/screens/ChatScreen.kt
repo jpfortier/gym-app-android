@@ -60,6 +60,9 @@ import dev.gymapp.ui.chat.ChatMessage
 import dev.gymapp.ui.chat.ChatRole
 import dev.gymapp.ui.chat.ChatViewModel
 import dev.gymapp.ui.chat.InputMode
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 @Composable
@@ -131,6 +134,25 @@ fun ChatScreen(
         if (granted && isRecording) {
             scope.launch {
                 audioRecorder.startRecording()
+                if (!audioRecorder.isRecording()) return@launch
+                delay(1000)
+                var silenceCount = 0
+                while (currentCoroutineContext().isActive && audioRecorder.isRecording()) {
+                    delay(100)
+                    val amp = audioRecorder.getMaxAmplitude()
+                    if (amp in 1..800) {
+                        silenceCount++
+                        if (silenceCount >= 15) {
+                            audioRecorder.stopAndGetBase64().onSuccess { base64 ->
+                                viewModel.sendAudio(base64)
+                            }
+                            isRecording = false
+                            return@launch
+                        }
+                    } else {
+                        silenceCount = 0
+                    }
+                }
             }
         } else if (!granted) {
             isRecording = false

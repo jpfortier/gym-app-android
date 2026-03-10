@@ -17,8 +17,8 @@ android {
         applicationId = "dev.gymapp"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "BASE_URL", "\"https://gym-app.fly.dev\"")
         buildConfigField("String", "GOOGLE_CLIENT_ID_WEB", "\"259179195778-4ndapfrnm2fc1q0vp0qgvbsqm13ini6o.apps.googleusercontent.com\"")
@@ -29,11 +29,23 @@ android {
         animationsDisabled = true
     }
 
+    signingConfigs {
+        getByName("debug") {
+            // debug uses default debug keystore
+        }
+        create("release") {
+            storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
     buildTypes {
         getByName("debug") {
             buildConfigField("String", "BASE_URL", "\"https://10.0.2.2:8081\"")
         }
         getByName("release") {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -60,6 +72,26 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+    }
+}
+
+tasks.register("incrementVersion") {
+    doLast {
+        val buildFile = file("${project.projectDir}/build.gradle.kts")
+        val content = buildFile.readText()
+        val versionCodeRegex = Regex("versionCode = (\\d+)")
+        val versionNameRegex = Regex("versionName = \"([\\d.]+)\"")
+        val versionCodeMatch = versionCodeRegex.find(content) ?: error("versionCode not found")
+        val versionNameMatch = versionNameRegex.find(content) ?: error("versionName not found")
+        val newVersionCode = versionCodeMatch.groupValues[1].toInt() + 1
+        val versionName = versionNameMatch.groupValues[1]
+        val parts = versionName.split(".")
+        val newVersionName = parts.dropLast(1).joinToString(".") + "." + (parts.last().toInt() + 1)
+        val newContent = content
+            .replace(versionCodeRegex) { "versionCode = $newVersionCode" }
+            .replace(versionNameRegex) { "versionName = \"$newVersionName\"" }
+        buildFile.writeText(newContent)
+        println("Incremented version: $versionName -> $newVersionName, versionCode -> $newVersionCode")
     }
 }
 

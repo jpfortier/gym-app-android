@@ -184,7 +184,7 @@ fun ChatScreen(
                     modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
                 ) {
                     Image(
-                        painter = painterResource(R.drawable.app_icon),
+                        painter = painterResource(R.drawable.ic_dashboard_icon),
                         contentDescription = "Dashboard",
                         modifier = Modifier.size(28.dp)
                     )

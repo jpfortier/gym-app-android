@@ -4,7 +4,6 @@ import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,7 +20,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
@@ -181,7 +179,7 @@ fun ChatScreen(
             ) {
                 IconButton(
                     onClick = onOpenDashboard,
-                    modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
+                    modifier = Modifier.size(56.dp)
                 ) {
                     Image(
                         painter = painterResource(R.drawable.ic_dashboard_icon),
@@ -239,7 +237,7 @@ fun ChatScreen(
                     .padding(horizontal = 16.dp),
                 state = listState,
                 contentPadding = PaddingValues(top = 16.dp, bottom = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(state.messages, key = { it.id }) { msg ->
                     ChatMessageItem(

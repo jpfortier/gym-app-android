@@ -35,17 +35,23 @@ private val AppTypography = Typography(
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFFBB86FC),
-    secondary = Color(0xFF03DAC6),
-    tertiary = Color(0xFF3700B3),
+    primary = TrainYellow,
+    onPrimary = OnTrainYellow,
+    secondary = Color(0xFFE8C547),
+    onSecondary = OnTrainYellow,
+    tertiary = Color(0xFFB8860B),
+    onTertiary = OnTrainYellow,
     background = AppBackground,
     surface = AppBackground
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Color(0xFF6200EE),
-    secondary = Color(0xFF03DAC6),
-    tertiary = Color(0xFF3700B3),
+    primary = TrainYellow,
+    onPrimary = OnTrainYellow,
+    secondary = Color(0xFFE8C547),
+    onSecondary = OnTrainYellow,
+    tertiary = Color(0xFFB8860B),
+    onTertiary = OnTrainYellow,
     background = AppBackground,
     surface = AppBackground
 )

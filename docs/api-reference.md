@@ -30,8 +30,16 @@ Reference for the Android app. All endpoints require authentication unless noted
 
 When `GYM_DEV_MODE=true`:
 
-- **GET /dev/token** — Returns `{ "token": "dev:<email>" }`. Default email `test@datavysta.com`; override with `?email=...`. Returns 404 when dev mode is off.
+- **GET /dev/token** — Returns `{ "token": "dev:<email>" }`. Default email `test@example.com`; override with `?email=...`. Returns 404 when dev mode is off.
 - **Bearer dev:\<email\>** — Accepted by RequireAuth. User is looked up by email; if missing, created.
+
+**Agent / automated login:** To use Dev sign-in from the Android app (tap version number on sign-in screen):
+
+1. Run the gym backend locally with `GYM_DEV_MODE=true` and `GYM_PORT=8081`.
+2. Add `base.url=https://10.0.2.2:8081` (or `http://` if backend runs without TLS) to `local.properties` (emulator → host).
+3. Rebuild and run the app. Tap the version number (e.g. "v1.0.7") to sign in as dev user.
+
+**mkcert for emulator:** The app trusts `res/raw/mkcert_root_ca.pem`. For HTTPS to 10.0.2.2, the backend cert must include 10.0.2.2 in SAN: `mkcert localhost 127.0.0.1 10.0.2.2`. If the ChatScreenTest fails with "Voice message" timeout, the emulator may not trust the cert—try running the backend without TLS (omit GYM_TLS_* in .env) and use `base.url=http://10.0.2.2:8081`.
 
 ---
 

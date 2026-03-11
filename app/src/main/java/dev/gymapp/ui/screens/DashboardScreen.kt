@@ -40,6 +40,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import dev.gymapp.update.UpdateHelper
 import dev.gymapp.update.UpdateResult
 import kotlinx.coroutines.launch
@@ -145,6 +147,7 @@ fun DashboardScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier
                                     .padding(horizontal = 8.dp)
+                                    .semantics { contentDescription = "Up to date" }
                                     .clickable {
                                         scope.launch {
                                             updateCheckResult = null

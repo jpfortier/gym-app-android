@@ -1,4 +1,8 @@
 # Copy to local.properties and set sdk.dir to your Android SDK path.
 # Android Studio creates local.properties automatically when you open the project.
+#
+# Optional: Override BASE_URL for debug builds (agent / Dev sign-in).
+# Run gym backend locally with GYM_DEV_MODE=true, then:
+# base.url=http://10.0.2.2:8081
 # Typical macOS path: /Users/YOUR_USERNAME/Library/Android/sdk
 sdk.dir=/path/to/android-sdk

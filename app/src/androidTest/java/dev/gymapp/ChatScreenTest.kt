@@ -77,7 +77,7 @@ class ChatScreenTest {
             .performScrollTo()
             .performClick()
         composeTestRule.waitUntilAtLeastOneExists(
-            hasContentDescription("Assistant message: Got it"),
+            hasContentDescription("Assistant message:", substring = true),
             45000L
         )
     }

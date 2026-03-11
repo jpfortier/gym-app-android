@@ -1,13 +1,7 @@
 package dev.gymapp.ui.navigation
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -17,10 +11,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import dev.gymapp.BuildConfig
 import dev.gymapp.PrTracksApplication
@@ -37,6 +29,7 @@ fun AppNavigation(app: PrTracksApplication) {
     val scope = rememberCoroutineScope()
     var showDashboard by remember { mutableStateOf(false) }
     var isValidated by remember { mutableStateOf(false) }
+    var cameFromSignIn by remember { mutableStateOf(false) }
     val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(authState.isSignedIn) {
@@ -75,29 +68,27 @@ fun AppNavigation(app: PrTracksApplication) {
 
     if (authState.isSignedIn) {
         if (!isValidated) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    CircularProgressIndicator(modifier = Modifier.size(48.dp))
-                    Text(
-                        text = "Validating...",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
+            if (cameFromSignIn) {
+                SignInScreen(
+                    signedOutMessage = authState.signedOutMessage,
+                    isValidating = true,
+                    onSignIn = { },
+                    onDevSignIn = null
+                )
+            } else {
+                Box(modifier = Modifier.fillMaxSize())
             }
         } else if (showDashboard) {
             DashboardScreen(app = app, onBack = { showDashboard = false })
         } else {
+            LaunchedEffect(Unit) { cameFromSignIn = false }
             ChatScreen(app = app, onOpenDashboard = { showDashboard = true })
         }
     } else {
+        LaunchedEffect(Unit) { cameFromSignIn = true }
         SignInScreen(
             signedOutMessage = authState.signedOutMessage,
+            isValidating = false,
             onSignIn = {
                 app.authRepository.clearSignedOutMessage()
                 scope.launch {

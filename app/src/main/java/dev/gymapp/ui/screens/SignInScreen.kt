@@ -43,6 +43,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SignInScreen(
     signedOutMessage: String? = null,
+    isValidating: Boolean = false,
     onSignIn: () -> Unit,
     onDevSignIn: (() -> Unit)? = null
 ) {
@@ -75,18 +76,26 @@ fun SignInScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(0.85f)
-                        .height(48.dp)
-                        .clickable(onClick = onSignIn)
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.logo_google_signin_btn_dark),
-                        contentDescription = "Sign in with Google",
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier.fillMaxSize()
+                if (isValidating) {
+                    Text(
+                        text = "Validating...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(0.85f)
+                            .height(48.dp)
+                            .clickable(onClick = onSignIn)
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.logo_google_signin_btn_dark),
+                            contentDescription = "Sign in with Google",
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
                 }
 
                 if (signedOutMessage != null) {

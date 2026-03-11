@@ -20,7 +20,7 @@ android {
         versionCode = 2
         versionName = "1.0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "BASE_URL", "\"https://prtracks.com\"")
+        buildConfigField("String", "BASE_URL", "\"https://gym-app.fly.dev\"")
         buildConfigField("String", "GOOGLE_CLIENT_ID_WEB", "\"259179195778-4ndapfrnm2fc1q0vp0qgvbsqm13ini6o.apps.googleusercontent.com\"")
         buildConfigField("String", "UPDATE_BASE_URL", "\"https://pub-0b1c5314d42240e5859bcab509f9626f.r2.dev\"")
     }
@@ -42,7 +42,7 @@ android {
     }
     buildTypes {
         getByName("debug") {
-            buildConfigField("String", "BASE_URL", "\"https://prtracks.com\"")
+            buildConfigField("String", "BASE_URL", "\"https://gym-app.fly.dev\"")
         }
         getByName("release") {
             signingConfig = signingConfigs.getByName("release")

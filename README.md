@@ -30,3 +30,27 @@ For AI-driven app testing, add [mobile-mcp](https://github.com/mobile-next/mobil
 Backend runs on Fly.io. See [gym-app docs/api.md](https://github.com/jpfortier/gym-app/blob/main/docs/api.md).
 
 Local API reference: [docs/api-reference.md](docs/api-reference.md)
+
+## Testing the backend
+
+To verify the backend accepts audio before running the full cycle Android test:
+
+```bash
+# From project root. Backend must be running (make run in ../gym).
+./scripts/test-backend-chat.sh
+# Or with explicit URL:
+./scripts/test-backend-chat.sh https://127.0.0.1:8081
+```
+
+Uses the same sample audio (`20260306_133927.m4a` — "Close grip bench 130") as the debug buttons. Requires `jq`.
+
+## Full cycle test
+
+`chatScreen_devSignIn_sendSample_receivesResponse` sends real audio to the backend and waits for the response. Requires:
+
+1. Backend running at `base.url` (from `local.properties`), with `GYM_DEV_MODE=true`
+2. Emulator reachable: if HTTPS fails (mkcert), run backend without TLS and use `base.url=http://10.0.2.2:8081`
+
+```bash
+./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=dev.gymapp.ChatScreenTest#chatScreen_devSignIn_sendSample_receivesResponse
+```

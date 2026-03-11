@@ -1,9 +1,17 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("io.gitlab.arturbosch.detekt")
 }
+
+val localProperties = Properties().apply {
+    rootProject.file("local.properties").takeIf { it.exists() }?.let { load(FileInputStream(it)) }
+}
+val debugBaseUrl = localProperties.getProperty("base.url") ?: "https://prtracks.com"
 
 detekt {
     config.setFrom(files("${rootProject.projectDir}/config/detekt.yml"))
@@ -42,7 +50,7 @@ android {
     }
     buildTypes {
         getByName("debug") {
-            buildConfigField("String", "BASE_URL", "\"https://prtracks.com\"")
+            buildConfigField("String", "BASE_URL", "\"$debugBaseUrl\"")
         }
         getByName("release") {
             signingConfig = signingConfigs.getByName("release")
@@ -126,6 +134,7 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
 
     implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation("com.github.jeziellago:compose-markdown:0.6.0")
 
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
     implementation("androidx.credentials:credentials:1.2.2")
@@ -142,4 +151,5 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
     androidTestImplementation("androidx.activity:activity-compose:1.8.2")
     androidTestImplementation("androidx.test:runner:1.5.2")
+    androidTestImplementation("androidx.test:rules:1.5.0")
 }

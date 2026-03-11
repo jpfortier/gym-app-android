@@ -1,4 +1,4 @@
-# Gym App Android - Scratchpad
+# PR Tracks Android - Scratchpad
 
 ## Stack Plan
 
@@ -175,11 +175,12 @@ dev.gymapp/
 
 ## Executor's Feedback or Assistance Requests
 
+- **Chat UI and Voice Flow (Mar 2026):** Implemented: (1) Removed typing mode—mic only. (2) Mic as floating icon in circle (FAB) above bottom. (3) Dashboard icon in top-left with border. (4) Chat history on load via GET /chat/messages. (5) Voice transcription: placeholder until reply, reload history after send. (6) Server-side audio already done. (7) GET /chat/history added to docs. (8) README links to docs/api-reference.md. GymApi.chatMessages() added; ChatMessagesResponse DTO; ChatViewModel loads on init and reloads after sendAudio success.
 - **Phase 6 complete:** Error handling implemented. Snackbar on API failure; tap "Details" shows dialog with error, code, error_token. ChatViewModel and DashboardViewModel parse ApiError via ErrorBodyParser.
 - **Dev mode:** GET /dev/token (api.md) returns `dev:<email>`. Debug-only "Dev sign-in" button on SignInScreen. Instrumentation tests use dev token. Debug sample buttons (m4a from gym/samples/audio) send audio to chat. Tests: signOut() in @Before so SignIn tests see sign-in screen.
 - **Android SDK required:** Build succeeds only when `local.properties` has valid `sdk.dir` pointing to Android SDK.
 - **Base URL:** Debug (emulator) = `https://10.0.2.2:8081`, Release = `https://gym-app.fly.dev`, Physical = `https://<mac-ip>:8081`. See `gym/docs/android-developer-reference.md`.
-- **Mobile MCP:** Now working (full path + PATH env in mcp.json). Verified: app launches, screenshot captured app content (Gym App, API URL, Health error). CLEARTEXT fix applied.
+- **Mobile MCP:** Now working (full path + PATH env in mcp.json). Verified: app launches, screenshot captured app content (PR Tracks, API URL, Health error). CLEARTEXT fix applied.
 
 ## Lessons
 

@@ -42,6 +42,7 @@ fun AppNavigation(app: PrTracksApplication) {
     LaunchedEffect(authState.isSignedIn) {
         if (!authState.isSignedIn) {
             isValidated = false
+            showDashboard = false
         }
     }
 

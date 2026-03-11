@@ -68,6 +68,7 @@ fun ChatScreen(
     app: PrTracksApplication = LocalContext.current.applicationContext as PrTracksApplication,
     onOpenDashboard: () -> Unit = {},
     viewModel: ChatViewModel = viewModel(
+        key = "chat_${app.authRepository.currentToken ?: "signedout"}",
         factory = object : androidx.lifecycle.ViewModelProvider.Factory {
             override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
                 @Suppress("UNCHECKED_CAST")

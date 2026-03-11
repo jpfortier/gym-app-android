@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "GymApp"
+rootProject.name = "PrTracks"
 include(":app")

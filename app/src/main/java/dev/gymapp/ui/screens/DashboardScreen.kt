@@ -1,6 +1,7 @@
 package dev.gymapp.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,14 +49,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import dev.gymapp.BuildConfig
-import dev.gymapp.GymApplication
+import dev.gymapp.PrTracksApplication
 import dev.gymapp.api.models.ApiError
 import dev.gymapp.ui.dashboard.DashboardViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
-    app: GymApplication = LocalContext.current.applicationContext as GymApplication,
+    app: PrTracksApplication = LocalContext.current.applicationContext as PrTracksApplication,
     onBack: () -> Unit,
     viewModel: DashboardViewModel = viewModel(
         factory = object : androidx.lifecycle.ViewModelProvider.Factory {
@@ -142,7 +143,38 @@ fun DashboardScreen(
                                 text = "Up to date",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 8.dp)
+                                modifier = Modifier
+                                    .padding(horizontal = 8.dp)
+                                    .clickable {
+                                        scope.launch {
+                                            updateCheckResult = null
+                                            updateCheckResult = updateHelper.checkForUpdate()
+                                            when (val r = updateCheckResult) {
+                                                is UpdateResult.Available -> {
+                                                    snackbarHostState.showSnackbar(
+                                                        "Update available: ${r.info.versionName}. Downloading...",
+                                                        duration = SnackbarDuration.Short
+                                                    )
+                                                    updateHelper.downloadAndInstall()
+                                                        .onSuccess {
+                                                            snackbarHostState.showSnackbar(
+                                                                "Install when ready",
+                                                                duration = SnackbarDuration.Short
+                                                            )
+                                                        }
+                                                        .onFailure {
+                                                            snackbarHostState.showSnackbar(
+                                                                "Download failed: ${it.message}"
+                                                            )
+                                                        }
+                                                }
+                                                is UpdateResult.Error -> {
+                                                    snackbarHostState.showSnackbar("Update check failed: ${r.message}")
+                                                }
+                                                else -> { }
+                                            }
+                                        }
+                                    }
                             )
                         }
                         is UpdateResult.Available, is UpdateResult.Error -> {

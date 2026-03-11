@@ -1,8 +1,10 @@
 package dev.gymapp
 
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.waitUntilAtLeastOneExists
@@ -22,13 +24,13 @@ class ChatScreenTest {
 
     @Before
     fun signOut() {
-        (ApplicationProvider.getApplicationContext() as GymApplication).authRepository.signOut()
+        (ApplicationProvider.getApplicationContext() as PrTracksApplication).authRepository.signOut()
     }
 
     @Test
     fun chatScreen_devSignIn_sendSample_receivesResponse() {
-        composeTestRule.onNodeWithText("Dev sign-in").performClick()
-        composeTestRule.waitUntilAtLeastOneExists(hasText("Tap mic to record"), 10000L)
+        composeTestRule.onNodeWithContentDescription("Dev sign-in").performClick()
+        composeTestRule.waitUntilAtLeastOneExists(hasContentDescription("Record voice"), 10000L)
         composeTestRule.onNodeWithText("Close grip bench 130").performClick()
         composeTestRule.waitUntilAtLeastOneExists(hasText("Voice message"), 15000L)
     }

@@ -1,4 +1,4 @@
-# Gym App API — Android Client Reference
+# PR Tracks API — Android Client Reference
 
 Reference for the Android app. All endpoints require authentication unless noted.
 
@@ -440,6 +440,7 @@ All errors (except 404/503 for specific cases) return:
 | GET | /dev/token | No | Dev token (GYM_DEV_MODE only) |
 | GET | /me | Yes | Current user |
 | GET | /chat/messages | Yes | Chat history |
+| GET | /chat/history | Yes | Chat history (alias) |
 | POST | /chat | Yes | Log, query, correct, remove, restore, note |
 | GET | /sessions | Yes | List sessions |
 | GET | /sessions/{id} | Yes | Session detail |

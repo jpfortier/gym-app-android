@@ -1,5 +1,6 @@
 package dev.gymapp.api
 
+import dev.gymapp.api.models.ChatMessagesResponse
 import dev.gymapp.api.models.ChatRequest
 import dev.gymapp.api.models.ChatResponse
 import dev.gymapp.api.models.DevTokenResponse
@@ -27,6 +28,12 @@ interface GymApi {
 
     @GET("me")
     suspend fun me(): Response<User>
+
+    @GET("chat/messages")
+    suspend fun chatMessages(
+        @Query("limit") limit: Int? = null,
+        @Query("before") before: String? = null
+    ): Response<ChatMessagesResponse>
 
     @POST("chat")
     suspend fun chat(@Body request: ChatRequest): Response<ChatResponse>

@@ -23,7 +23,7 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import dev.gymapp.BuildConfig
-import dev.gymapp.GymApplication
+import dev.gymapp.PrTracksApplication
 import dev.gymapp.ui.screens.ChatScreen
 import dev.gymapp.ui.screens.DashboardScreen
 import dev.gymapp.ui.screens.SignInScreen
@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun AppNavigation(app: GymApplication) {
+fun AppNavigation(app: PrTracksApplication) {
     val authState by app.authRepository.authState.collectAsState(initial = app.authRepository.authState.value)
     val scope = rememberCoroutineScope()
     var showDashboard by remember { mutableStateOf(false) }
@@ -42,6 +42,7 @@ fun AppNavigation(app: GymApplication) {
     LaunchedEffect(authState.isSignedIn) {
         if (!authState.isSignedIn) {
             isValidated = false
+            showDashboard = false
         }
     }
 

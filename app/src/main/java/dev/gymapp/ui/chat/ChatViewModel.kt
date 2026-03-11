@@ -30,14 +30,8 @@ enum class ChatRole {
 data class ChatUiState(
     val messages: List<ChatMessage> = emptyList(),
     val isLoading: Boolean = false,
-    val inputMode: InputMode = InputMode.VOICE,
     val lastError: ApiError? = null
 )
-
-enum class InputMode {
-    VOICE,
-    TEXT
-}
 
 class ChatViewModel(private val api: GymApi) : ViewModel() {
 
@@ -47,47 +41,40 @@ class ChatViewModel(private val api: GymApi) : ViewModel() {
     private var messageIdCounter = 0
     private fun nextId() = "msg_${++messageIdCounter}"
 
-    fun sendText(text: String) {
-        if (text.isBlank()) return
+    init {
+        loadChatHistory()
+    }
+
+    fun loadChatHistory() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            val userMsg = ChatMessage(nextId(), ChatRole.USER, text)
-            _state.update { it.copy(messages = it.messages + userMsg) }
-
-            val (chatResponse, apiError) = withContext(Dispatchers.IO) {
+            val result = withContext(Dispatchers.IO) {
                 runCatching {
-                    val response = api.chat(ChatRequest(text = text.trim()))
+                    val response = api.chatMessages(limit = 50)
                     if (response.isSuccessful) {
-                        response.body()!! to null
+                        response.body()?.messages?.map { dto ->
+                            ChatMessage(
+                                id = dto.id,
+                                role = if (dto.role == "user") ChatRole.USER else ChatRole.ASSISTANT,
+                                content = dto.content
+                            )
+                        } ?: emptyList()
                     } else {
-                        null to ErrorBodyParser.parse(response.errorBody(), response.code())
+                        null
                     }
-                }.getOrElse {
-                    null to ApiError(
-                        error = it.message ?: "Unknown error",
-                        code = "?",
-                        errorToken = null
-                    )
-                }
+                }.getOrNull()
             }
-
-            _state.update { it.copy(isLoading = false) }
-            if (chatResponse != null) {
-                val displayText = formatResponse(chatResponse)
-                val assistantMsg = ChatMessage(nextId(), ChatRole.ASSISTANT, displayText, chatResponse)
-                _state.update { it.copy(messages = it.messages + assistantMsg, lastError = null) }
-            } else if (apiError != null) {
-                _state.update { it.copy(lastError = apiError) }
+            _state.update {
+                it.copy(
+                    messages = result ?: it.messages,
+                    isLoading = false
+                )
             }
         }
     }
 
     fun clearError() {
         _state.update { it.copy(lastError = null) }
-    }
-
-    fun setInputMode(mode: InputMode) {
-        _state.update { it.copy(inputMode = mode) }
     }
 
     fun sendAudio(audioBase64: String) {
@@ -117,9 +104,8 @@ class ChatViewModel(private val api: GymApi) : ViewModel() {
 
             _state.update { it.copy(isLoading = false) }
             if (chatResponse != null) {
-                val displayText = formatResponse(chatResponse)
-                val assistantMsg = ChatMessage(nextId(), ChatRole.ASSISTANT, displayText, chatResponse)
-                _state.update { it.copy(messages = it.messages + assistantMsg, lastError = null) }
+                _state.update { it.copy(lastError = null) }
+                loadChatHistory()
             } else if (apiError != null) {
                 _state.update { it.copy(lastError = apiError) }
             }

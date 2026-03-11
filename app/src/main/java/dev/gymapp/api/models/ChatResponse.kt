@@ -3,7 +3,7 @@ package dev.gymapp.api.models
 import com.google.gson.annotations.SerializedName
 
 data class ChatResponse(
-    val intent: String,
+    val intent: String? = null,
     val message: String? = null,
     val entries: List<LogEntry>? = null,
     val prs: List<PersonalRecord>? = null,

@@ -58,6 +58,8 @@ import dev.gymapp.audio.AudioRecorder
 import dev.gymapp.api.models.ApiError
 import dev.gymapp.ui.chat.ChatRole
 import dev.gymapp.ui.chat.ChatViewModel
+import dev.gymapp.ui.chat.PrImageModal
+import dev.gymapp.ui.chat.PrWithImage
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -207,11 +209,12 @@ fun ChatScreen(
             }
         }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+            ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -288,6 +291,14 @@ fun ChatScreen(
                         }
                     }
                 }
+            }
+            }
+
+            state.pendingPrModal?.let { prs ->
+                PrImageModal(
+                    prs = prs,
+                    onDismiss = { viewModel.dismissPrModal() }
+                )
             }
         }
     }

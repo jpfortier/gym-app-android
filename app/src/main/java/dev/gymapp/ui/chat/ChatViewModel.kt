@@ -4,9 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gymapp.api.ErrorBodyParser
 import dev.gymapp.api.GymApi
+import dev.gymapp.api.PrImageLoader
 import dev.gymapp.api.models.ApiError
 import dev.gymapp.api.models.ChatRequest
 import dev.gymapp.api.models.ChatResponse
+import dev.gymapp.api.models.PersonalRecord
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,11 +32,13 @@ enum class ChatRole {
 data class ChatUiState(
     val messages: List<ChatMessage> = emptyList(),
     val isLoading: Boolean = false,
-    val lastError: ApiError? = null
+    val lastError: ApiError? = null,
+    val pendingPrModal: List<PrWithImage>? = null
 )
 
 class ChatViewModel(private val api: GymApi) : ViewModel() {
 
+    private val imageLoader = PrImageLoader(api)
     private val _state = MutableStateFlow(ChatUiState())
     val state: StateFlow<ChatUiState> = _state.asStateFlow()
 
@@ -77,6 +81,10 @@ class ChatViewModel(private val api: GymApi) : ViewModel() {
         _state.update { it.copy(lastError = null) }
     }
 
+    fun dismissPrModal() {
+        _state.update { it.copy(pendingPrModal = null) }
+    }
+
     fun sendAudio(audioBase64: String) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
@@ -106,6 +114,23 @@ class ChatViewModel(private val api: GymApi) : ViewModel() {
             if (chatResponse != null) {
                 _state.update { it.copy(lastError = null) }
                 loadChatHistory()
+                chatResponse.prs?.takeIf { it.isNotEmpty() }?.let { prs ->
+                    val initial = prs.map { PrWithImage(pr = it, imageBytes = null) }
+                    _state.update { it.copy(pendingPrModal = initial) }
+                    prs.forEach { pr ->
+                        viewModelScope.launch {
+                            imageLoader.loadPrImage(pr.id)
+                                .onSuccess { bytes ->
+                                    _state.update { state ->
+                                        val updated = state.pendingPrModal?.map { p ->
+                                            if (p.pr.id == pr.id) p.copy(imageBytes = bytes) else p
+                                        }
+                                        state.copy(pendingPrModal = updated)
+                                    }
+                                }
+                        }
+                    }
+                }
             } else if (apiError != null) {
                 _state.update { it.copy(lastError = apiError) }
             }

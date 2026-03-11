@@ -43,3 +43,6 @@ google-services.json
 
 # Wrangler (Cloudflare)
 .wrangler/
+
+# Deploy artifact (generated and uploaded to R2)
+version.json

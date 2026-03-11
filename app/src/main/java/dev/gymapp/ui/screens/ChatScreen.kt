@@ -184,7 +184,7 @@ fun ChatScreen(
                     Image(
                         painter = painterResource(R.drawable.ic_dashboard_icon),
                         contentDescription = "Dashboard",
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(40.dp)
                     )
                 }
                 BottomBarMic(

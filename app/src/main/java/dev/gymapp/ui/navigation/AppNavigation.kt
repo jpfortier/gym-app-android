@@ -30,12 +30,22 @@ fun AppNavigation(app: PrTracksApplication) {
     var showDashboard by remember { mutableStateOf(false) }
     var isValidated by remember { mutableStateOf(false) }
     var cameFromSignIn by remember { mutableStateOf(false) }
+    var hasAttemptedSilentSignIn by remember { mutableStateOf(false) }
+    var isAttemptingSilentSignIn by remember { mutableStateOf(false) }
     val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(authState.isSignedIn) {
         if (!authState.isSignedIn) {
             isValidated = false
             showDashboard = false
+            if (!hasAttemptedSilentSignIn) {
+                hasAttemptedSilentSignIn = true
+                isAttemptingSilentSignIn = true
+                app.authRepository.refreshToken()
+                isAttemptingSilentSignIn = false
+            }
+        } else {
+            hasAttemptedSilentSignIn = false
         }
     }
 
@@ -88,7 +98,7 @@ fun AppNavigation(app: PrTracksApplication) {
         LaunchedEffect(Unit) { cameFromSignIn = true }
         SignInScreen(
             signedOutMessage = authState.signedOutMessage,
-            isValidating = false,
+            isValidating = isAttemptingSilentSignIn,
             onSignIn = {
                 app.authRepository.clearSignedOutMessage()
                 scope.launch {

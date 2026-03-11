@@ -58,10 +58,9 @@ class DashboardScreenTest {
     }
 
     @Test
-    fun dashboardScreen_displaysPlaceholderTiles() {
+    fun dashboardScreen_displaysStreakTile() {
         signInAndOpenDashboard()
-        composeTestRule.onAllNodesWithText("Placeholder", substring = true).get(0).assertExists()
-        composeTestRule.onAllNodesWithText("Coming soon").get(0).assertExists()
+        composeTestRule.onNodeWithText("Streak").assertExists()
     }
 
     @Test

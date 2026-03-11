@@ -22,12 +22,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.dp
-import android.view.HapticFeedbackConstants
 import androidx.compose.ui.text.TextStyle
 import dev.jeziellago.compose.markdowntext.MarkdownText
 import dev.gymapp.ui.chat.ChatMessage
@@ -141,10 +141,10 @@ fun BottomBarMic(
     isRecording: Boolean,
     onVoiceTap: () -> Unit
 ) {
-    val view = LocalView.current
+    val haptics = LocalHapticFeedback.current
     IconButton(
         onClick = {
-            view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
             onVoiceTap()
         },
         modifier = Modifier

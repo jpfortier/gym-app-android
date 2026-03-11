@@ -109,7 +109,7 @@ dev.gymapp/
 | **Chat input** | Voice primary (mic); keyboard icon in bottom corner to switch to text mode |
 | **Chat layout** | Conversation history: user right + bubbles, software left + no bubbles |
 | **Navigation** | Bottom-left icon → Dashboard |
-| **Dashboard** | 2×2 grid: 1 real tile (Latest PR), 3 placeholders. Display-only, no tap actions |
+| **Dashboard** | Scrollable: Latest PR + Streak tiles; Recent PRs (last 3 per type); Exercise type cards; Activity timeline. Refresh button. |
 | **Errors** | Snackbar; on tap show full debug info (error, code, error_token) for dev |
 | **401 handling** | Try refresh silently; if fails, redirect to sign-in with "signed out" message |
 | **Voice** | Record audio, POST to backend (no SpeechRecognizer). m4a format. VAD auto-stop after 1.5s silence (fixed, easy to change in code) |
@@ -171,6 +171,7 @@ dev.gymapp/
 - [x] Chat screen (conversation, text + voice input)
 - [x] Audio recording (m4a, VAD 1.5s)
 - [x] Dashboard (2×2 grid, Latest PR + placeholders)
+- [x] Dashboard expansion (Streak, Recent PRs by type, Exercise cards, Activity timeline, Refresh)
 - [x] Error handling (snackbar + debug on tap)
 
 ## Executor's Feedback or Assistance Requests
@@ -191,3 +192,4 @@ dev.gymapp/
 - **ChatScreenTest mkcert:** Test sends sample audio to backend. If it times out waiting for "Voice message", emulator may not trust mkcert for 10.0.2.2. Verified: app's mkcert_root_ca.pem matches system CA; backend cert has 10.0.2.2 in SAN. Workaround: run backend without TLS, use base.url=http://10.0.2.2:8081.
 - **Composable tests:** Use `ComposeTestActivity` (empty activity in manifest) with `createAndroidComposeRule<ComposeTestActivity>()` and `setContent` for composable-only tests. MainActivity already sets content so cannot use setContent on it.
 - **Backend test:** `scripts/test-backend-chat.sh` tests POST /chat with sample audio from host. Full cycle Android test needs emulator→host reachability; use `base.url=http://10.0.2.2:8081` if HTTPS/mkcert fails from emulator.
+- **ChatScreenComponents haptic:** LocalHapticFeedback is in `androidx.compose.ui.platform`; HapticFeedbackType.Confirm may be absent in some Compose BOM versions—use LongPress instead.

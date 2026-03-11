@@ -1,21 +1,25 @@
 package dev.gymapp.ui.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.SystemUpdate
+import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -39,6 +43,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -53,6 +58,8 @@ import coil.compose.AsyncImage
 import dev.gymapp.BuildConfig
 import dev.gymapp.PrTracksApplication
 import dev.gymapp.api.models.ApiError
+import dev.gymapp.api.models.Pr
+import dev.gymapp.api.models.Session
 import dev.gymapp.ui.dashboard.DashboardViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -134,6 +141,12 @@ fun DashboardScreen(
                     }
                 },
                 actions = {
+                    IconButton(
+                        onClick = { viewModel.refresh() },
+                        modifier = Modifier.semantics { contentDescription = "Refresh" }
+                    ) {
+                        Icon(Icons.Default.Refresh, contentDescription = "Refresh")
+                    }
                     IconButton(
                         onClick = { app.authRepository.signOut() }
                     ) {
@@ -223,51 +236,192 @@ fun DashboardScreen(
             )
         }
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                DashboardTile(
-                    modifier = Modifier.weight(1f),
-                    title = "Latest PR",
-                    content = state.latestPr?.let { "${it.exerciseName} ${it.weight}×${it.reps}" } ?: "—",
-                    imageBytes = state.latestPrImage
-                )
-                DashboardTile(
-                    modifier = Modifier.weight(1f),
-                    title = "Placeholder",
-                    content = "Coming soon"
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    DashboardTile(
+                        modifier = Modifier.weight(1f),
+                        title = "Latest PR",
+                        content = state.latestPr?.let { "${it.exerciseName} ${it.weight}×${it.reps}" } ?: "—",
+                        imageBytes = state.latestPrImage
+                    )
+                    DashboardTile(
+                        modifier = Modifier.weight(1f),
+                        title = "Streak",
+                        content = if (state.streakDays > 0) "${state.streakDays} day${if (state.streakDays == 1) "" else "s"}" else "—",
+                        leadingIcon = Icons.Default.Whatshot
+                    )
+                }
+            }
+
+            if (state.recentPrsByType.isNotEmpty()) {
+                item {
+                    Text(
+                        text = "Recent PRs",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        state.recentPrsByType.forEach { (prType, prs) ->
+                            prs.forEach { pr ->
+                                RecentPrRow(
+                                    pr = pr,
+                                    prTypeLabel = formatPrType(prType)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (state.exerciseCategories.isNotEmpty()) {
+                item {
+                    Text(
+                        text = "Exercise types",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+                item {
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    ) {
+                        items(state.exerciseCategories) { category ->
+                            ExerciseCategoryCard(categoryName = category)
+                        }
+                    }
+                }
+            }
+
+            if (state.sessions.isNotEmpty()) {
+                item {
+                    Text(
+                        text = "Activity timeline",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+                items(state.sessions.take(15)) { session ->
+                    SessionTimelineRow(session = session)
+                }
+            }
+
+            item {
+                Text(
+                    modifier = Modifier.padding(top = 8.dp, bottom = 24.dp),
+                    text = "v${BuildConfig.VERSION_NAME}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                DashboardTile(
-                    modifier = Modifier.weight(1f),
-                    title = "Placeholder",
-                    content = "Coming soon"
+        }
+    }
+}
+
+private fun formatPrType(prType: String): String =
+    prType.split("_").joinToString(" ") { it.replaceFirstChar { c -> c.uppercase() } }
+
+@Composable
+private fun RecentPrRow(
+    pr: Pr,
+    prTypeLabel: String
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = pr.exerciseName + if (pr.variantName != "standard") " (${pr.variantName})" else "",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
-                DashboardTile(
-                    modifier = Modifier.weight(1f),
-                    title = "Placeholder",
-                    content = "Coming soon"
+                Text(
+                    text = prTypeLabel,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Text(
-                modifier = Modifier.padding(top = 16.dp),
-                text = "v${BuildConfig.VERSION_NAME}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = "${pr.weight}×${pr.reps}",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
             )
+        }
+    }
+}
+
+@Composable
+private fun ExerciseCategoryCard(categoryName: String) {
+    Card(
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.FitnessCenter,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            Text(
+                text = categoryName,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+        }
+    }
+}
+
+@Composable
+private fun SessionTimelineRow(session: Session) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = session.date,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            if (!session.entries.isNullOrEmpty()) {
+                Text(
+                    text = session.entries.joinToString { it.exerciseName },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
     }
 }
@@ -277,7 +431,8 @@ private fun DashboardTile(
     modifier: Modifier = Modifier,
     title: String,
     content: String,
-    imageBytes: ByteArray? = null
+    imageBytes: ByteArray? = null,
+    leadingIcon: ImageVector? = null
 ) {
     Card(
         modifier = modifier.size(160.dp),
@@ -289,11 +444,24 @@ private fun DashboardTile(
                 .fillMaxSize()
                 .padding(12.dp)
         ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                if (leadingIcon != null) {
+                    Icon(
+                        imageVector = leadingIcon,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
             if (imageBytes != null) {
                 AsyncImage(
                     model = imageBytes,

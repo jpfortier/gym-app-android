@@ -9,8 +9,10 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,8 +23,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -51,6 +53,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import android.util.Base64
 import dev.gymapp.BuildConfig
+import dev.gymapp.R
+import dev.gymapp.ui.theme.TrainYellow
 import dev.gymapp.PrTracksApplication
 import dev.gymapp.audio.AudioRecorder
 import dev.gymapp.api.models.ApiError
@@ -160,11 +164,18 @@ fun ChatScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(MaterialTheme.colorScheme.outline)
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surface)
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -172,7 +183,11 @@ fun ChatScreen(
                     onClick = onOpenDashboard,
                     modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
                 ) {
-                    Icon(Icons.Default.Dashboard, contentDescription = "Dashboard")
+                    Image(
+                        painter = painterResource(R.drawable.app_icon),
+                        contentDescription = "Dashboard",
+                        modifier = Modifier.size(28.dp)
+                    )
                 }
                 BottomBarMic(
                     isRecording = isRecording,
@@ -191,6 +206,7 @@ fun ChatScreen(
                     }
                 )
             }
+            }
         }
     ) { padding ->
         Column(
@@ -198,18 +214,30 @@ fun ChatScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(2.dp)
+                    .background(TrainYellow)
+            )
             val lastMsg = state.messages.lastOrNull()
             val isPendingVoice = state.isLoading &&
                 lastMsg != null &&
                 lastMsg.role == ChatRole.USER &&
                 lastMsg.content == "[Voice message]"
 
+            val listState = rememberLazyListState()
+            LaunchedEffect(state.messages.size) {
+                if (state.messages.isNotEmpty()) {
+                    listState.animateScrollToItem(state.messages.size - 1)
+                }
+            }
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
-                state = rememberLazyListState(),
+                state = listState,
                 contentPadding = PaddingValues(top = 16.dp, bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {

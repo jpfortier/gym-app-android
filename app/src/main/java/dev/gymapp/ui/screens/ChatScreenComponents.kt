@@ -22,6 +22,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import dev.gymapp.ui.chat.ChatMessage
 import dev.gymapp.ui.chat.ChatRole
@@ -110,8 +112,12 @@ fun BottomBarMic(
     isRecording: Boolean,
     onVoiceTap: () -> Unit
 ) {
+    val haptic = LocalHapticFeedback.current
     IconButton(
-        onClick = onVoiceTap,
+        onClick = {
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            onVoiceTap()
+        },
         modifier = Modifier
             .size(56.dp)
             .background(TrainYellow, CircleShape)
@@ -120,7 +126,7 @@ fun BottomBarMic(
             imageVector = if (isRecording) Icons.Default.Stop else Icons.Default.Mic,
             contentDescription = if (isRecording) "Stop recording" else "Record voice",
             modifier = Modifier.size(28.dp),
-            tint = if (isRecording) MaterialTheme.colorScheme.error else OnTrainYellow
+            tint = if (isRecording) OnTrainYellow else OnTrainYellow
         )
     }
 }

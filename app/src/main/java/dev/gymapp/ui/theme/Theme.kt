@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.sp
 
 private val AppBackground = Color(0xFF141414)
 
-val TrainYellow = Color(0xFFF2C72F)
+val TrainYellow = Color(0xFFD4A84B)
 val OnTrainYellow = Color(0xFF1A1A1A)
 
 private val AppTypography = Typography(

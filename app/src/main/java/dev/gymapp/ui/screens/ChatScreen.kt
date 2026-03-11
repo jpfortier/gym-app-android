@@ -3,13 +3,16 @@ package dev.gymapp.ui.screens
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -21,10 +24,10 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -49,7 +52,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import dev.gymapp.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import android.util.Base64
 import dev.gymapp.BuildConfig
@@ -60,6 +65,8 @@ import dev.gymapp.ui.chat.ChatMessage
 import dev.gymapp.ui.chat.ChatRole
 import dev.gymapp.ui.chat.ChatViewModel
 import dev.gymapp.ui.chat.InputMode
+import dev.gymapp.ui.theme.OnTrainYellow
+import dev.gymapp.ui.theme.TrainYellow
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -173,7 +180,7 @@ fun ChatScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
             state = rememberLazyListState(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(state.messages, key = { it.id }) { msg ->
                 ChatMessageItem(msg)
@@ -222,7 +229,10 @@ fun ChatScreen(
                 }
             }
         }
-        ChatInputBar(
+        Column(modifier = Modifier.fillMaxWidth()) {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            Spacer(modifier = Modifier.height(8.dp))
+            ChatInputBar(
             inputMode = state.inputMode,
             isRecording = isRecording,
             onOpenDashboard = onOpenDashboard,
@@ -243,6 +253,7 @@ fun ChatScreen(
             }
         )
         }
+        }
     }
 }
 
@@ -254,15 +265,15 @@ private fun ChatMessageItem(msg: ChatMessage) {
     ) {
         Box(
             modifier = Modifier
-                .widthIn(max = 280.dp)
+                .fillMaxWidth(0.85f)
                 .then(
                     if (msg.role == ChatRole.USER) {
                         Modifier
                             .background(
-                                MaterialTheme.colorScheme.primaryContainer,
-                                RoundedCornerShape(16.dp, 16.dp, 4.dp, 16.dp)
+                                TrainYellow,
+                                RoundedCornerShape(18.dp)
                             )
-                            .padding(12.dp)
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
                     } else {
                         Modifier.padding(4.dp)
                     }
@@ -277,36 +288,27 @@ private fun ChatMessageItem(msg: ChatMessage) {
                         imageVector = Icons.Default.Mic,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp),
-                        tint = if (msg.role == ChatRole.USER) {
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.onSurface
-                        }
+                        tint = if (msg.role == ChatRole.USER) OnTrainYellow else MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = "Voice message",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = if (msg.role == ChatRole.USER) {
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.onSurface
-                        }
+                        color = if (msg.role == ChatRole.USER) OnTrainYellow else MaterialTheme.colorScheme.onSurface
                     )
                 }
             } else {
                 Text(
                     text = msg.content,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = if (msg.role == ChatRole.USER) {
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.onSurface
-                    }
+                    color = if (msg.role == ChatRole.USER) OnTrainYellow else MaterialTheme.colorScheme.onSurface
                 )
             }
         }
     }
 }
+
+private val FooterButtonSize = 48.dp
+private val FooterButtonRadius = 5.dp
 
 @Composable
 private fun ChatInputBar(
@@ -322,18 +324,26 @@ private fun ChatInputBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = onOpenDashboard) {
-            Icon(Icons.Default.Dashboard, contentDescription = "Dashboard")
-        }
-        IconButton(onClick = onModeToggle) {
-            Icon(
-                imageVector = if (inputMode == InputMode.TEXT) Icons.Default.Mic else Icons.Default.Keyboard,
-                contentDescription = if (inputMode == InputMode.TEXT) "Switch to voice" else "Switch to keyboard"
+        Box(
+            modifier = Modifier
+                .size(FooterButtonSize)
+                .background(
+                    MaterialTheme.colorScheme.surfaceVariant,
+                    RoundedCornerShape(FooterButtonRadius)
+                )
+                .clickable(onClick = onOpenDashboard),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(R.drawable.app_icon),
+                contentDescription = "Dashboard",
+                modifier = Modifier.size(32.dp)
             )
         }
+        Spacer(modifier = Modifier.size(8.dp))
 
         when (inputMode) {
             InputMode.TEXT -> {
@@ -353,8 +363,44 @@ private fun ChatInputBar(
                 ) {
                     Text("Send")
                 }
+                Spacer(modifier = Modifier.size(8.dp))
+                Box(
+                    modifier = Modifier
+                        .size(FooterButtonSize)
+                        .background(
+                            MaterialTheme.colorScheme.surfaceVariant,
+                            RoundedCornerShape(FooterButtonRadius)
+                        )
+                        .clickable(onClick = onModeToggle),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Mic,
+                        contentDescription = "Switch to voice",
+                        tint = TrainYellow,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
             InputMode.VOICE -> {
+                Box(
+                    modifier = Modifier
+                        .size(FooterButtonSize)
+                        .background(
+                            MaterialTheme.colorScheme.surfaceVariant,
+                            RoundedCornerShape(FooterButtonRadius)
+                        )
+                        .clickable(onClick = onModeToggle),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Keyboard,
+                        contentDescription = "Switch to keyboard",
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.size(8.dp))
                 Box(modifier = Modifier.weight(1f)) {
                     Text(
                         text = if (isRecording) "Tap to stop" else "Tap mic to record",
@@ -362,10 +408,21 @@ private fun ChatInputBar(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                IconButton(onClick = onVoiceTap) {
+                Box(
+                    modifier = Modifier
+                        .size(FooterButtonSize)
+                        .background(
+                            MaterialTheme.colorScheme.surfaceVariant,
+                            RoundedCornerShape(FooterButtonRadius)
+                        )
+                        .clickable(onClick = onVoiceTap),
+                    contentAlignment = Alignment.Center
+                ) {
                     Icon(
                         imageVector = if (isRecording) Icons.Default.Stop else Icons.Default.Mic,
-                        contentDescription = if (isRecording) "Stop recording" else "Record voice"
+                        contentDescription = if (isRecording) "Stop recording" else "Record voice",
+                        tint = if (isRecording) MaterialTheme.colorScheme.error else TrainYellow,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }

@@ -84,4 +84,15 @@ class DashboardScreenTest {
             15000L
         )
     }
+
+    /**
+     * Clicks Latest PR tile and verifies no crash. If backend returns PRs, modal opens with Close button.
+     */
+    @Test
+    fun dashboardScreen_clickLatestPr_doesNotCrash() {
+        signInAndOpenDashboard()
+        composeTestRule.waitUntilAtLeastOneExists(hasContentDescription("Refresh"), 15000L)
+        composeTestRule.onNodeWithText("Latest PR").performClick()
+        composeTestRule.runOnIdle { }
+    }
 }

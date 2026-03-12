@@ -1,11 +1,5 @@
 package dev.gymapp.ui.chat
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +19,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -37,8 +32,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -162,7 +155,11 @@ fun PrImageModal(
                                     )
                                 }
                             } else {
-                                ShimmerSkeleton(modifier = Modifier.fillMaxSize())
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(32.dp),
+                                    strokeWidth = 2.dp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                )
                             }
                         }
 
@@ -213,35 +210,6 @@ fun PrImageModal(
             }
         }
     }
-}
-
-@Composable
-private fun ShimmerSkeleton(modifier: Modifier = Modifier) {
-    val shimmerColors = listOf(
-        Color.White.copy(alpha = 0.15f),
-        Color.White.copy(alpha = 0.05f),
-        Color.White.copy(alpha = 0.15f)
-    )
-    val transition = rememberInfiniteTransition(label = "shimmer")
-    val translateAnimation by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1000f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1200, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "shimmer_animation"
-    )
-    Box(
-        modifier = modifier
-            .background(
-                Brush.linearGradient(
-                    colors = shimmerColors,
-                    start = Offset(translateAnimation - 300f, 0f),
-                    end = Offset(translateAnimation, 0f)
-                )
-            )
-    )
 }
 
 private fun formatPrCaption(pr: PersonalRecord): String {

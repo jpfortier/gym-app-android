@@ -143,7 +143,7 @@ fun BottomBarMic(
     val haptics = LocalHapticFeedback.current
     IconButton(
         onClick = {
-            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
             onVoiceTap()
         },
         modifier = Modifier

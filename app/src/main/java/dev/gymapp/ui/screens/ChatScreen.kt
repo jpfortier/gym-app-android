@@ -166,11 +166,12 @@ fun ChatScreen(
     Scaffold(
         snackbarHost = { AppSnackbarHost(snackbarHostState) },
         bottomBar = {
-            Column(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .graphicsLayer { clip = false }
             ) {
+                Column(modifier = Modifier.fillMaxWidth()) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -204,18 +205,19 @@ fun ChatScreen(
                 )
             }
             }
+                Image(
+                    painter = painterResource(R.drawable.ic_dashboard_icon),
+                    contentDescription = "Dashboard",
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(start = 16.dp, bottom = 16.dp)
+                        .size(65.dp)
+                        .clickable { onOpenDashboard() }
+                )
+            }
         }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize()) {
-            Image(
-                painter = painterResource(R.drawable.ic_dashboard_icon),
-                contentDescription = "Dashboard",
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(start = 16.dp, bottom = 16.dp)
-                    .size(60.dp)
-                    .clickable { onOpenDashboard() }
-            )
             Column(
                 modifier = Modifier
                     .fillMaxSize()

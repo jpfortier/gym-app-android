@@ -25,8 +25,8 @@ android {
         applicationId = "dev.gymapp"
         minSdk = 24
         targetSdk = 34
-        versionCode = 10
-        versionName = "1.0.9"
+        versionCode = 11
+        versionName = "1.0.10"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "BASE_URL", "\"https://prtracks.com\"")
         buildConfigField("String", "GOOGLE_CLIENT_ID_WEB", "\"259179195778-4ndapfrnm2fc1q0vp0qgvbsqm13ini6o.apps.googleusercontent.com\"")

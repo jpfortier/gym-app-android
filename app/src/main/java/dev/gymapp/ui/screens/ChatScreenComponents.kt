@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Mic
@@ -148,8 +147,8 @@ fun BottomBarMic(
             onVoiceTap()
         },
         modifier = Modifier
-            .size(56.dp)
-            .background(TrainYellow, CircleShape)
+            .size(48.dp)
+            .background(TrainYellow, RoundedCornerShape(6.dp))
     ) {
         Icon(
             imageVector = if (isRecording) Icons.Default.Stop else Icons.Default.Mic,

@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.res.painterResource
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -46,6 +47,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -164,7 +166,11 @@ fun ChatScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
-            Column(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .graphicsLayer { clip = false }
+            ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -175,18 +181,22 @@ fun ChatScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(MaterialTheme.colorScheme.surface)
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                        .graphicsLayer { clip = false },
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(
-                    onClick = onOpenDashboard,
-                    modifier = Modifier.size(56.dp)
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .graphicsLayer { clip = false }
+                        .clickable { onOpenDashboard() },
+                    contentAlignment = Alignment.BottomCenter
                 ) {
                     Image(
                         painter = painterResource(R.drawable.ic_dashboard_icon),
                         contentDescription = "Dashboard",
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(80.dp)
                     )
                 }
                 BottomBarMic(

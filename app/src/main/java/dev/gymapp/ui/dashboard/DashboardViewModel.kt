@@ -9,6 +9,8 @@ import dev.gymapp.api.models.ApiError
 import dev.gymapp.api.models.ExerciseVariant
 import dev.gymapp.api.models.Pr
 import dev.gymapp.api.models.Session
+import dev.gymapp.api.models.toPersonalRecord
+import dev.gymapp.ui.chat.PrWithImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -28,7 +30,8 @@ data class DashboardUiState(
     val exerciseCategories: List<String> = emptyList(),
     val sessions: List<Session> = emptyList(),
     val streakDays: Int = 0,
-    val lastError: ApiError? = null
+    val lastError: ApiError? = null,
+    val selectedPrModal: PrWithImage? = null
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -46,6 +49,7 @@ data class DashboardUiState(
         if (sessions != other.sessions) return false
         if (streakDays != other.streakDays) return false
         if (lastError != other.lastError) return false
+        if (selectedPrModal != other.selectedPrModal) return false
         return true
     }
 
@@ -59,6 +63,7 @@ data class DashboardUiState(
         result = 31 * result + sessions.hashCode()
         result = 31 * result + streakDays
         result = 31 * result + (lastError?.hashCode() ?: 0)
+        result = 31 * result + (selectedPrModal?.hashCode() ?: 0)
         return result
     }
 }
@@ -75,6 +80,29 @@ class DashboardViewModel(private val api: GymApi) : ViewModel() {
 
     fun clearError() {
         _state.update { it.copy(lastError = null) }
+    }
+
+    fun showPrModal(pr: Pr, imageBytes: ByteArray? = null) {
+        val prWithImage = PrWithImage(pr = pr.toPersonalRecord(), imageBytes = imageBytes)
+        _state.update { it.copy(selectedPrModal = prWithImage) }
+        if (imageBytes == null) {
+            viewModelScope.launch {
+                imageLoader.loadPrImage(pr.id)
+                    .onSuccess { bytes ->
+                        _state.update { state ->
+                            state.selectedPrModal?.let { current ->
+                                if (current.pr.id == pr.id) {
+                                    state.copy(selectedPrModal = current.copy(imageBytes = bytes))
+                                } else state
+                            } ?: state
+                        }
+                    }
+            }
+        }
+    }
+
+    fun dismissPrModal() {
+        _state.update { it.copy(selectedPrModal = null) }
     }
 
     fun refresh() {

@@ -181,14 +181,14 @@ fun ChatScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(MaterialTheme.colorScheme.surface)
-                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                        .padding(horizontal = 16.dp, vertical = 10.dp)
                         .graphicsLayer { clip = false },
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
                     modifier = Modifier
-                        .size(56.dp)
+                        .size(48.dp)
                         .graphicsLayer { clip = false }
                         .clickable { onOpenDashboard() },
                     contentAlignment = Alignment.BottomCenter
@@ -196,7 +196,7 @@ fun ChatScreen(
                     Image(
                         painter = painterResource(R.drawable.ic_dashboard_icon),
                         contentDescription = "Dashboard",
-                        modifier = Modifier.size(80.dp)
+                        modifier = Modifier.size(150.dp)
                     )
                 }
                 BottomBarMic(

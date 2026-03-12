@@ -183,22 +183,9 @@ fun ChatScreen(
                         .background(MaterialTheme.colorScheme.surface)
                         .padding(horizontal = 16.dp, vertical = 10.dp)
                         .graphicsLayer { clip = false },
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .graphicsLayer { clip = false }
-                        .clickable { onOpenDashboard() },
-                    contentAlignment = Alignment.BottomCenter
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.ic_dashboard_icon),
-                        contentDescription = "Dashboard",
-                        modifier = Modifier.size(150.dp)
-                    )
-                }
                 BottomBarMic(
                     isRecording = isRecording,
                     onVoiceTap = {
@@ -220,6 +207,15 @@ fun ChatScreen(
         }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize()) {
+            Image(
+                painter = painterResource(R.drawable.ic_dashboard_icon),
+                contentDescription = "Dashboard",
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(start = 16.dp, bottom = 16.dp)
+                    .size(60.dp)
+                    .clickable { onOpenDashboard() }
+            )
             Column(
                 modifier = Modifier
                     .fillMaxSize()

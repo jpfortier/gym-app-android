@@ -1,8 +1,11 @@
 package dev.gymapp.ui.chat
 
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,7 +25,6 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -35,7 +37,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -43,8 +46,8 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import dev.gymapp.api.models.PersonalRecord
 
-private const val MAX_SIZE_DP = 400
-private const val WIDTH_FRACTION = 0.75f
+private val FOOTER_BG = Color(0xFF181818)
+private const val WIDTH_FRACTION = 0.9f
 
 data class PrWithImage(
     val pr: PersonalRecord,
@@ -81,16 +84,7 @@ fun PrImageModal(
 
     val config = LocalConfiguration.current
     val screenWidthDp = config.screenWidthDp.dp
-    val modalWidth = (screenWidthDp * WIDTH_FRACTION).coerceAtMost(MAX_SIZE_DP.dp)
-
-    val scale by animateFloatAsState(
-        targetValue = if (hasImage) 1f else 0.65f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
-        ),
-        label = "pr_modal_scale"
-    )
+    val modalWidth = screenWidthDp * WIDTH_FRACTION
 
     Box(
         modifier = modifier
@@ -99,125 +93,142 @@ fun PrImageModal(
             .clickable(enabled = true, onClick = onDismiss),
         contentAlignment = Alignment.Center
     ) {
-        Card(
+        Box(
             modifier = Modifier
-                .widthIn(max = MAX_SIZE_DP.dp)
-                .padding(horizontal = 24.dp)
-                .scale(scale),
-            onClick = { },
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = if (hasImage) {
-                    MaterialTheme.colorScheme.surface
-                } else {
-                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f)
-                }
-            ),
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = if (hasImage) 16.dp else 4.dp,
-                pressedElevation = if (hasImage) 20.dp else 6.dp
-            )
+                .widthIn(max = modalWidth)
+                .padding(horizontal = 24.dp),
+            contentAlignment = Alignment.TopEnd
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = { },
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 16.dp, pressedElevation = 20.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.End)
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    IconButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.size(32.dp)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "Close",
-                            modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        if (prs.size > 1) {
+                            IconButton(
+                                onClick = {
+                                    currentIndex = (currentIndex - 1 + prs.size) % prs.size
+                                },
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                                    contentDescription = "Previous"
+                                )
+                            }
+                        } else {
+                            Box(modifier = Modifier.size(40.dp))
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(1f)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(FOOTER_BG),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (hasImage) {
+                                AsyncImage(
+                                    model = pr.imageBytes,
+                                    contentDescription = "${pr.pr.exerciseName} PR image",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                ShimmerSkeleton(modifier = Modifier.fillMaxSize())
+                            }
+                        }
+
+                        if (prs.size > 1) {
+                            IconButton(
+                                onClick = {
+                                    currentIndex = (currentIndex + 1) % prs.size
+                                },
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                    contentDescription = "Next"
+                                )
+                            }
+                        } else {
+                            Box(modifier = Modifier.size(40.dp))
+                        }
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(FOOTER_BG)
+                            .padding(16.dp)
+                    ) {
+                        Text(
+                            text = formatPrCaption(pr.pr),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
+            }
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (prs.size > 1) {
-                        IconButton(
-                            onClick = {
-                                currentIndex = (currentIndex - 1 + prs.size) % prs.size
-                            },
-                            modifier = Modifier.size(40.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                                contentDescription = "Previous"
-                            )
-                        }
-                    } else {
-                        Box(modifier = Modifier.size(40.dp))
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .widthIn(max = modalWidth)
-                            .aspectRatio(1f)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(
-                                if (hasImage) Color.Transparent
-                                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (hasImage) {
-                            AsyncImage(
-                                model = pr.imageBytes,
-                                contentDescription = "${pr.pr.exerciseName} PR image",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(32.dp),
-                                strokeWidth = 2.dp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                            )
-                        }
-                    }
-
-                    if (prs.size > 1) {
-                        IconButton(
-                            onClick = {
-                                currentIndex = (currentIndex + 1) % prs.size
-                            },
-                            modifier = Modifier.size(40.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                contentDescription = "Next"
-                            )
-                        }
-                    } else {
-                        Box(modifier = Modifier.size(40.dp))
-                    }
-                }
-
-                Text(
-                    text = formatPrCaption(pr.pr),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(top = 12.dp, bottom = 4.dp)
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier
+                    .size(40.dp)
+                    .padding(top = (-8).dp, end = (-8).dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Close",
+                    modifier = Modifier.size(24.dp),
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
         }
     }
+}
+
+@Composable
+private fun ShimmerSkeleton(modifier: Modifier = Modifier) {
+    val shimmerColors = listOf(
+        Color.White.copy(alpha = 0.15f),
+        Color.White.copy(alpha = 0.05f),
+        Color.White.copy(alpha = 0.15f)
+    )
+    val transition = rememberInfiniteTransition(label = "shimmer")
+    val translateAnimation by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1200, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "shimmer_animation"
+    )
+    Box(
+        modifier = modifier
+            .background(
+                Brush.linearGradient(
+                    colors = shimmerColors,
+                    start = Offset(translateAnimation - 300f, 0f),
+                    end = Offset(translateAnimation, 0f)
+                )
+            )
+    )
 }
 
 private fun formatPrCaption(pr: PersonalRecord): String {

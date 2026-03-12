@@ -2,6 +2,7 @@ package dev.gymapp.ui.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -61,6 +62,7 @@ import dev.gymapp.api.models.ApiError
 import dev.gymapp.api.models.Pr
 import dev.gymapp.api.models.Session
 import dev.gymapp.ui.dashboard.DashboardViewModel
+import dev.gymapp.ui.chat.PrImageModal
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -236,6 +238,7 @@ fun DashboardScreen(
             )
         }
     ) { padding ->
+        Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -252,7 +255,10 @@ fun DashboardScreen(
                         modifier = Modifier.weight(1f),
                         title = "Latest PR",
                         content = state.latestPr?.let { "${it.exerciseName} ${it.weight}×${it.reps}" } ?: "—",
-                        imageBytes = state.latestPrImage
+                        imageBytes = state.latestPrImage,
+                        onClick = state.latestPr?.let { pr ->
+                            { viewModel.showPrModal(pr, state.latestPrImage) }
+                        }
                     )
                     DashboardTile(
                         modifier = Modifier.weight(1f),
@@ -277,7 +283,8 @@ fun DashboardScreen(
                             prs.forEach { pr ->
                                 RecentPrRow(
                                     pr = pr,
-                                    prTypeLabel = formatPrType(prType)
+                                    prTypeLabel = formatPrType(prType),
+                                    onClick = { viewModel.showPrModal(pr) }
                                 )
                             }
                         }
@@ -329,6 +336,14 @@ fun DashboardScreen(
                 )
             }
         }
+
+        state.selectedPrModal?.let { prWithImage ->
+            PrImageModal(
+                prs = listOf(prWithImage),
+                onDismiss = { viewModel.dismissPrModal() }
+            )
+        }
+        }
     }
 }
 
@@ -338,12 +353,14 @@ private fun formatPrType(prType: String): String =
 @Composable
 private fun RecentPrRow(
     pr: Pr,
-    prTypeLabel: String
+    prTypeLabel: String,
+    onClick: () -> Unit = {}
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)),
+        onClick = onClick
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
@@ -432,12 +449,14 @@ private fun DashboardTile(
     title: String,
     content: String,
     imageBytes: ByteArray? = null,
-    leadingIcon: ImageVector? = null
+    leadingIcon: ImageVector? = null,
+    onClick: (() -> Unit)? = null
 ) {
     Card(
         modifier = modifier.size(160.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        onClick = onClick ?: {}
     ) {
         Column(
             modifier = Modifier

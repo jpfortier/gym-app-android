@@ -482,8 +482,15 @@ private fun DashboardTile(
                 )
             }
             if (imageBytes != null) {
+                val context = LocalContext.current
+                val imageRequest = remember(imageBytes) {
+                    coil.request.ImageRequest.Builder(context)
+                        .data(imageBytes)
+                        .size(512)
+                        .build()
+                }
                 AsyncImage(
-                    model = imageBytes,
+                    model = imageRequest,
                     contentDescription = "PR image",
                     modifier = Modifier
                         .weight(1f)

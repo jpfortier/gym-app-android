@@ -42,8 +42,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import dev.gymapp.api.models.PersonalRecord
 
 private val FOOTER_BG = Color(0xFF181818)
@@ -142,12 +144,23 @@ fun PrImageModal(
                             contentAlignment = Alignment.Center
                         ) {
                             if (hasImage) {
-                                AsyncImage(
-                                    model = pr.imageBytes,
-                                    contentDescription = "${pr.pr.exerciseName} PR image",
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = ContentScale.Crop
-                                )
+                                val context = LocalContext.current
+                                val imageRequest = remember(pr.imageBytes) {
+                                    pr.imageBytes?.let { bytes ->
+                                        ImageRequest.Builder(context)
+                                            .data(bytes)
+                                            .size(1024)
+                                            .build()
+                                    }
+                                }
+                                if (imageRequest != null) {
+                                    AsyncImage(
+                                        model = imageRequest,
+                                        contentDescription = "${pr.pr.exerciseName} PR image",
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
                             } else {
                                 ShimmerSkeleton(modifier = Modifier.fillMaxSize())
                             }

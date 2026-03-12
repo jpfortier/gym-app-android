@@ -83,21 +83,25 @@ class DashboardViewModel(private val api: GymApi) : ViewModel() {
     }
 
     fun showPrModal(pr: Pr, imageBytes: ByteArray? = null) {
-        val prWithImage = PrWithImage(pr = pr.toPersonalRecord(), imageBytes = imageBytes)
-        _state.update { it.copy(selectedPrModal = prWithImage) }
-        if (imageBytes == null) {
-            viewModelScope.launch {
-                imageLoader.loadPrImage(pr.id)
-                    .onSuccess { bytes ->
-                        _state.update { state ->
-                            state.selectedPrModal?.let { current ->
-                                if (current.pr.id == pr.id) {
-                                    state.copy(selectedPrModal = current.copy(imageBytes = bytes))
-                                } else state
-                            } ?: state
+        runCatching {
+            val prWithImage = PrWithImage(pr = pr.toPersonalRecord(), imageBytes = imageBytes)
+            _state.update { it.copy(selectedPrModal = prWithImage) }
+            if (imageBytes == null) {
+                viewModelScope.launch {
+                    imageLoader.loadPrImage(pr.id)
+                        .onSuccess { bytes ->
+                            _state.update { state ->
+                                state.selectedPrModal?.let { current ->
+                                    if (current.pr.id == pr.id) {
+                                        state.copy(selectedPrModal = current.copy(imageBytes = bytes))
+                                    } else state
+                                } ?: state
+                            }
                         }
-                    }
+                }
             }
+        }.onFailure { e ->
+            _state.update { it.copy(selectedPrModal = null, lastError = ApiError(e.message ?: "Failed to show PR", "?", null)) }
         }
     }
 

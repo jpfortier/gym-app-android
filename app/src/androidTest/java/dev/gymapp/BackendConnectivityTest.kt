@@ -112,6 +112,6 @@ class BackendConnectivityTest {
         )
         val body = resp.body()
         Assert.assertNotNull("Response body null", body)
-        Assert.assertNotNull("Expected intent in response", body!!.intent)
+        Assert.assertNotNull("Expected message in response", body!!.message)
     }
 }

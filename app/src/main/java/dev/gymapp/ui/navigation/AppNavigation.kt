@@ -65,10 +65,17 @@ fun AppNavigation(app: PrTracksApplication) {
         snapshotFlow { lifecycleOwner.lifecycle.currentState }
             .collect { state ->
                 if (state == Lifecycle.State.RESUMED && authState.isSignedIn && isValidated) {
-                    val response = withContext(Dispatchers.IO) { app.api.me() }
-                    if (!response.isSuccessful) {
+                    runCatching {
+                        val response = withContext(Dispatchers.IO) { app.api.me() }
+                        if (!response.isSuccessful) {
+                            app.authRepository.signOutDueToAuthFailure(
+                                "Session expired or server unreachable (HTTP ${response.code()})"
+                            )
+                            isValidated = false
+                        }
+                    }.onFailure {
                         app.authRepository.signOutDueToAuthFailure(
-                            "Session expired or server unreachable (HTTP ${response.code()})"
+                            "Session check failed: ${it.message ?: "Unknown error"}"
                         )
                         isValidated = false
                     }

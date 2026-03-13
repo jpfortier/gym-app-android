@@ -70,6 +70,6 @@ class FakeGymApi(private val chatError: String = "Test error") : GymApi {
 
     override suspend fun prs(): Response<List<Pr>> = Response.success(emptyList())
 
-    override suspend fun prImage(id: String): Response<okhttp3.ResponseBody> =
+    override suspend fun prImage(id: String, ifNoneMatch: String?): Response<okhttp3.ResponseBody> =
         Response.error(404, "".toResponseBody(null))
 }

@@ -78,7 +78,7 @@ fun ChatScreen(
         factory = object : androidx.lifecycle.ViewModelProvider.Factory {
             override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
                 @Suppress("UNCHECKED_CAST")
-                return ChatViewModel(app.api) as T
+                return ChatViewModel(app.api, app.chatRepository) as T
             }
         }
     )
@@ -258,7 +258,7 @@ fun ChatScreen(
                         showSpinner = msg == lastMsg && isPendingVoice
                     )
                 }
-                if (state.isLoading && !isPendingVoice) {
+                if (state.isLoading && !isPendingVoice && !state.messages.any { it.isPlaceholder }) {
                     item {
                         Row(
                             modifier = Modifier.fillMaxWidth(),

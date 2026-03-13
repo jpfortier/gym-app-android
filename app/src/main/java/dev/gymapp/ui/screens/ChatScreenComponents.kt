@@ -60,12 +60,12 @@ fun ChatMessageItem(
                     }
                 )
         ) {
-            if (msg.content == "[Voice message]" || showSpinner) {
+            if (msg.content == "[Voice message]" || showSpinner || (msg.role == ChatRole.ASSISTANT && msg.isPlaceholder)) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    if (showSpinner) {
+                    if (showSpinner || msg.isPlaceholder) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(16.dp),
                             strokeWidth = 2.dp,
@@ -96,7 +96,11 @@ fun ChatMessageItem(
                         )
                     }
                     Text(
-                        text = if (showSpinner) "Sending…" else "Voice message",
+                        text = when {
+                            msg.isPlaceholder -> "Thinking…"
+                            showSpinner -> "Sending…"
+                            else -> "Voice message"
+                        },
                         style = MaterialTheme.typography.bodyMedium,
                         color = if (msg.role == ChatRole.USER) {
                             OnTrainYellow

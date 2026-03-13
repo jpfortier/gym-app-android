@@ -33,6 +33,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
@@ -57,7 +58,6 @@ import dev.gymapp.R
 import dev.gymapp.ui.theme.TrainYellow
 import dev.gymapp.PrTracksApplication
 import dev.gymapp.audio.AudioRecorder
-import dev.gymapp.ui.components.AppSnackbarHost
 import dev.gymapp.api.models.ApiError
 import dev.gymapp.ui.chat.ChatRole
 import dev.gymapp.ui.chat.ChatViewModel
@@ -165,7 +165,7 @@ fun ChatScreen(
     }
 
     Scaffold(
-        snackbarHost = { AppSnackbarHost(snackbarHostState) },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             Box(
                 modifier = Modifier

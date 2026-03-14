@@ -2,7 +2,8 @@ package dev.gymapp.ui.chat
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.gymapp.api.ErrorBodyParser
+import dev.gymapp.api.ChatPostResult
+import dev.gymapp.api.ChatRepository
 import dev.gymapp.api.GymApi
 import dev.gymapp.api.PrImageLoader
 import dev.gymapp.api.models.ApiError
@@ -21,7 +22,8 @@ data class ChatMessage(
     val id: String,
     val role: ChatRole,
     val content: String,
-    val response: ChatResponse? = null
+    val response: ChatResponse? = null,
+    val isPlaceholder: Boolean = false
 )
 
 enum class ChatRole {
@@ -36,7 +38,10 @@ data class ChatUiState(
     val pendingPrModal: List<PrWithImage>? = null
 )
 
-class ChatViewModel(private val api: GymApi) : ViewModel() {
+class ChatViewModel(
+    private val api: GymApi,
+    private val chatRepository: ChatRepository
+) : ViewModel() {
 
     private val imageLoader = PrImageLoader(api)
     private val _state = MutableStateFlow(ChatUiState())
@@ -88,51 +93,132 @@ class ChatViewModel(private val api: GymApi) : ViewModel() {
     fun sendAudio(audioBase64: String) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            val userMsg = ChatMessage(nextId(), ChatRole.USER, "[Voice message]")
-            _state.update { it.copy(messages = it.messages + userMsg) }
+            val request = ChatRequest(audioBase64 = audioBase64, audioFormat = "m4a")
 
-            val (chatResponse, apiError) = withContext(Dispatchers.IO) {
-                runCatching {
-                    val response = api.chat(
-                        ChatRequest(audioBase64 = audioBase64, audioFormat = "m4a")
-                    )
-                    if (response.isSuccessful) {
-                        response.body()!! to null
-                    } else {
-                        null to ErrorBodyParser.parse(response.errorBody(), response.code())
+            when (val result = withContext(Dispatchers.IO) {
+                chatRepository.postChat(request)
+            }) {
+                is kotlin.Result.Success -> when (val postResult = result.getOrThrow()) {
+                    is ChatPostResult.Sync -> handleSyncResponse(postResult.response)
+                    is ChatPostResult.Async -> handleAsyncResponse(postResult.job)
+                }
+                is kotlin.Result.Failure -> {
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            lastError = ApiError(
+                                error = result.exceptionOrNull()?.message ?: "Unknown error",
+                                code = "?",
+                                errorToken = null
+                            )
+                        )
                     }
-                }.getOrElse {
-                    null to ApiError(
-                        error = it.message ?: "Unknown error",
-                        code = "?",
-                        errorToken = null
+                }
+            }
+        }
+    }
+
+    private suspend fun handleSyncResponse(chatResponse: ChatResponse) {
+        val userMsg = ChatMessage(nextId(), ChatRole.USER, "[Voice message]")
+        val assistantMsg = ChatMessage(
+            id = nextId(),
+            role = ChatRole.ASSISTANT,
+            content = formatResponse(chatResponse),
+            response = chatResponse
+        )
+        _state.update {
+            it.copy(
+                messages = it.messages + userMsg + assistantMsg,
+                isLoading = false,
+                lastError = null
+            )
+        }
+        loadChatHistory()
+        showPrModalIfNeeded(chatResponse.prs)
+    }
+
+    private suspend fun handleAsyncResponse(job: dev.gymapp.api.models.JobResponse) {
+        val userMsg = ChatMessage(nextId(), ChatRole.USER, job.text)
+        val placeholderId = nextId()
+        val placeholderMsg = ChatMessage(
+            id = placeholderId,
+            role = ChatRole.ASSISTANT,
+            content = "Thinking...",
+            isPlaceholder = true
+        )
+        _state.update {
+            it.copy(
+                messages = it.messages + userMsg + placeholderMsg,
+                isLoading = true,
+                lastError = null
+            )
+        }
+
+        when (val pollResult = withContext(Dispatchers.IO) {
+            chatRepository.pollUntilComplete(job.jobId)
+        }) {
+            is kotlin.Result.Success -> {
+                val chatResponse = pollResult.getOrThrow().result
+                if (chatResponse != null) {
+                    val assistantMsg = ChatMessage(
+                        id = placeholderId,
+                        role = ChatRole.ASSISTANT,
+                        content = formatResponse(chatResponse),
+                        response = chatResponse,
+                        isPlaceholder = false
+                    )
+                    _state.update { state ->
+                        state.copy(
+                            messages = state.messages.map {
+                                if (it.id == placeholderId) assistantMsg else it
+                            },
+                            isLoading = false
+                        )
+                    }
+                    loadChatHistory()
+                    showPrModalIfNeeded(chatResponse.prs)
+                } else {
+                    _state.update { state ->
+                        state.copy(
+                            messages = state.messages.filter { it.id != placeholderId },
+                            isLoading = false,
+                            lastError = ApiError("No response from server", "?", null)
+                        )
+                    }
+                }
+            }
+            is kotlin.Result.Failure -> {
+                _state.update { state ->
+                    state.copy(
+                        messages = state.messages.filter { it.id != placeholderId },
+                        isLoading = false,
+                        lastError = ApiError(
+                            error = pollResult.exceptionOrNull()?.message ?: "Request failed",
+                            code = "?",
+                            errorToken = null
+                        )
                     )
                 }
             }
+        }
+    }
 
-            _state.update { it.copy(isLoading = false) }
-            if (chatResponse != null) {
-                _state.update { it.copy(lastError = null) }
-                loadChatHistory()
-                chatResponse.prs?.takeIf { it.isNotEmpty() }?.let { prs ->
-                    val initial = prs.map { PrWithImage(pr = it, imageBytes = null) }
-                    _state.update { it.copy(pendingPrModal = initial) }
-                    prs.forEach { pr ->
-                        viewModelScope.launch {
-                            imageLoader.loadPrImage(pr.id)
-                                .onSuccess { bytes ->
-                                    _state.update { state ->
-                                        val updated = state.pendingPrModal?.map { p ->
-                                            if (p.pr.id == pr.id) p.copy(imageBytes = bytes) else p
-                                        }
-                                        state.copy(pendingPrModal = updated)
-                                    }
+    private fun showPrModalIfNeeded(prs: List<PersonalRecord>?) {
+        prs?.takeIf { it.isNotEmpty() }?.let { list ->
+            val initial = list.map { PrWithImage(pr = it, imageBytes = null) }
+            _state.update { it.copy(pendingPrModal = initial) }
+            list.forEach { pr ->
+                viewModelScope.launch {
+                    imageLoader.loadPrImage(pr.id)
+                        .onSuccess { bytes ->
+                            _state.update { state ->
+                                val updated = state.pendingPrModal?.map { p ->
+                                    if (p.pr.id == pr.id) p.copy(imageBytes = bytes) else p
                                 }
+                                state.copy(pendingPrModal = updated)
+                            }
                         }
-                    }
                 }
-            } else if (apiError != null) {
-                _state.update { it.copy(lastError = apiError) }
             }
         }
     }

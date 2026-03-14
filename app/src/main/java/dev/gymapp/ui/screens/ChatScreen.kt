@@ -78,7 +78,7 @@ fun ChatScreen(
         factory = object : androidx.lifecycle.ViewModelProvider.Factory {
             override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
                 @Suppress("UNCHECKED_CAST")
-                return ChatViewModel(app.api) as T
+                return ChatViewModel(app.api, app.chatRepository) as T
             }
         }
     )
@@ -170,6 +170,7 @@ fun ChatScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .height(69.dp)
                     .graphicsLayer { clip = false }
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
@@ -207,12 +208,12 @@ fun ChatScreen(
             }
             }
                 Image(
-                    painter = painterResource(R.drawable.ic_dashboard_icon),
+                    painter = painterResource(R.drawable.logo),
                     contentDescription = "Dashboard",
                     modifier = Modifier
                         .align(Alignment.BottomStart)
                         .padding(start = 16.dp, bottom = 16.dp)
-                        .offset(y = 20.dp)
+                        .offset(y = 10.dp)
                         .size(105.dp)
                         .clickable { onOpenDashboard() }
                 )
@@ -258,7 +259,7 @@ fun ChatScreen(
                         showSpinner = msg == lastMsg && isPendingVoice
                     )
                 }
-                if (state.isLoading && !isPendingVoice) {
+                if (state.isLoading && !isPendingVoice && !state.messages.any { it.isPlaceholder }) {
                     item {
                         Row(
                             modifier = Modifier.fillMaxWidth(),

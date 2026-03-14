@@ -34,11 +34,13 @@ fun AppNavigation(app: PrTracksApplication) {
     var isAttemptingSilentSignIn by remember { mutableStateOf(false) }
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    LaunchedEffect(authState.isSignedIn) {
+    LaunchedEffect(authState.isSignedIn, authState.signedOutMessage) {
         if (!authState.isSignedIn) {
             isValidated = false
             showDashboard = false
-            if (!hasAttemptedSilentSignIn) {
+            if (authState.signedOutMessage != null) {
+                hasAttemptedSilentSignIn = true
+            } else if (!hasAttemptedSilentSignIn) {
                 hasAttemptedSilentSignIn = true
                 isAttemptingSilentSignIn = true
                 app.authRepository.refreshToken()

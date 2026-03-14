@@ -3,8 +3,6 @@ package dev.gymapp
 import dev.gymapp.api.GymApi
 import dev.gymapp.api.models.ApiError
 import dev.gymapp.api.models.ChatMessagesResponse
-import dev.gymapp.api.models.ChatRequest
-import dev.gymapp.api.models.ChatResponse
 import dev.gymapp.api.models.DevTokenResponse
 import dev.gymapp.api.models.ExerciseVariant
 import dev.gymapp.api.models.HealthResponse
@@ -36,16 +34,6 @@ class FakeGymApi(private val chatError: String = "Test error") : GymApi {
     override suspend fun chatMessages(limit: Int?, before: String?): Response<ChatMessagesResponse> {
         delay(10)
         return Response.success(ChatMessagesResponse(messages = emptyList()))
-    }
-
-    override suspend fun chat(request: ChatRequest): Response<ChatResponse> {
-        delay(50)
-        return Response.error(
-            500,
-            """{"error":"$chatError","code":"500","error_token":null}""".toResponseBody(
-                "application/json".toMediaType()
-            )
-        )
     }
 
     override suspend fun sessions(limit: Int?): Response<List<Session>> =

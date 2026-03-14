@@ -2,7 +2,6 @@ package dev.gymapp
 
 import android.util.Base64
 import androidx.test.core.app.ApplicationProvider
-import dev.gymapp.api.models.ChatRequest
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -104,14 +103,24 @@ class BackendConnectivityTest {
 
         val sampleBytes = app.assets.open("samples/20260306_133927.m4a").use { it.readBytes() }
         val audioBase64 = Base64.encodeToString(sampleBytes, Base64.NO_WRAP)
-        val resp = app.api.chat(ChatRequest(audioBase64 = audioBase64, audioFormat = "m4a"))
+        val result = app.chatRepository.postChat(
+            dev.gymapp.api.models.ChatRequest(audioBase64 = audioBase64, audioFormat = "m4a")
+        )
 
         Assert.assertTrue(
-            "POST /chat failed: ${resp.code()} ${resp.errorBody()?.string()}",
-            resp.isSuccessful
+            "POST /chat failed: ${result.exceptionOrNull()?.message}",
+            result.isSuccess
         )
-        val body = resp.body()
-        Assert.assertNotNull("Response body null", body)
-        Assert.assertNotNull("Expected message in response", body!!.message)
+        val postResult = result.getOrThrow()
+        when (postResult) {
+            is dev.gymapp.api.ChatPostResult.Sync -> {
+                Assert.assertNotNull("Expected message in sync response", postResult.response.message)
+            }
+            is dev.gymapp.api.ChatPostResult.Async -> {
+                Assert.assertNotNull("Expected text in async response", postResult.job.text)
+                val pollResult = app.chatRepository.pollUntilComplete(postResult.job.jobId)
+                Assert.assertTrue("Poll failed: ${pollResult.exceptionOrNull()?.message}", pollResult.isSuccess)
+            }
+        }
     }
 }

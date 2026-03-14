@@ -10,6 +10,7 @@ import androidx.compose.ui.test.waitUntilAtLeastOneExists
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.gymapp.api.ChatRepository
 import dev.gymapp.ui.chat.ChatViewModel
 import dev.gymapp.ui.screens.ChatScreen
 import dev.gymapp.ui.theme.PrTracksTheme
@@ -36,7 +37,10 @@ class ErrorHandlingTest {
                     factory = object : ViewModelProvider.Factory {
                         override fun <T : ViewModel> create(modelClass: Class<T>): T {
                             @Suppress("UNCHECKED_CAST")
-                            return ChatViewModel(FakeGymApi("Test API error")).also {
+                            return ChatViewModel(
+                                FakeGymApi("Test API error"),
+                                ChatRepository(FakeChatApi("Test API error"), com.google.gson.Gson())
+                            ).also {
                                 viewModel = it
                             } as T
                         }

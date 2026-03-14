@@ -12,6 +12,12 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
+data class ApiServices(
+    val api: GymApi,
+    val chatApi: ChatApi,
+    val gson: com.google.gson.Gson
+)
+
 object ApiClient {
 
     private const val TIMEOUT_SECONDS = 30L
@@ -21,7 +27,7 @@ object ApiClient {
         tokenProvider: () -> String?,
         refreshToken: suspend () -> Result<String>,
         onAuthFailure: (String) -> Unit
-    ): GymApi {
+    ): ApiServices {
         val authInterceptor = Interceptor { chain ->
             val token = tokenProvider()
             val request = chain.request().newBuilder()
@@ -61,13 +67,16 @@ object ApiClient {
             .writeTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .build()
 
+        val gson = com.google.gson.Gson()
         val retrofit = Retrofit.Builder()
             .baseUrl(BuildConfig.BASE_URL.ensureTrailingSlash())
             .client(client)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
 
-        return retrofit.create(GymApi::class.java)
+        val api = retrofit.create(GymApi::class.java)
+        val chatApi = retrofit.create(ChatApi::class.java)
+        return ApiServices(api, chatApi, gson)
     }
 
     private fun String.ensureTrailingSlash(): String =

@@ -396,8 +396,11 @@ Or with audio:
 |------|---------|
 | 404 | Image not ready yet → keep polling |
 | 302 | Image ready → follow redirect to load the image |
+| 304 | Not Modified → use cached image (when `If-None-Match` sent) |
 
 **On 302:** Redirect goes to R2 presigned URL (valid 1 hour).
+
+**On 304:** Client sends `If-None-Match: <etag>` when it has a cached image. Server returns 304 with no body if unchanged; client uses cached bytes.
 
 **Errors:** 404 if PR not found, not owned by user, or image not ready (DALL-E still generating).
 

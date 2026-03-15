@@ -62,7 +62,7 @@ import dev.gymapp.api.models.ApiError
 import dev.gymapp.api.models.Pr
 import dev.gymapp.api.models.Session
 import dev.gymapp.ui.dashboard.DashboardViewModel
-import dev.gymapp.ui.chat.PrImageModal
+import dev.gymapp.ui.chat.SafePrImageModal
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -338,9 +338,11 @@ fun DashboardScreen(
         }
 
         state.selectedPrModal?.let { prWithImage ->
-            PrImageModal(
+            SafePrImageModal(
                 prs = listOf(prWithImage),
-                onDismiss = { viewModel.dismissPrModal() }
+                onDismiss = { viewModel.dismissPrModal() },
+                onError = { msg -> scope.launch { snackbarHostState.showSnackbar(msg) } },
+                onRetry = { prId -> viewModel.retryPrImage(prId) }
             )
         }
         }

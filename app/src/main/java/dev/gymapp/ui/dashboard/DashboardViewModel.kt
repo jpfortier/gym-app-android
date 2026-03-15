@@ -83,26 +83,74 @@ class DashboardViewModel(private val api: GymApi) : ViewModel() {
     }
 
     fun showPrModal(pr: Pr, imageBytes: ByteArray? = null) {
-        val prWithImage = PrWithImage(pr = pr.toPersonalRecord(), imageBytes = imageBytes)
-        _state.update { it.copy(selectedPrModal = prWithImage) }
-        if (imageBytes == null) {
-            viewModelScope.launch {
-                imageLoader.loadPrImage(pr.id)
-                    .onSuccess { bytes ->
-                        _state.update { state ->
-                            state.selectedPrModal?.let { current ->
-                                if (current.pr.id == pr.id) {
-                                    state.copy(selectedPrModal = current.copy(imageBytes = bytes))
-                                } else state
-                            } ?: state
+        runCatching {
+            val prWithImage = PrWithImage(pr = pr.toPersonalRecord(), imageBytes = imageBytes)
+            _state.update { it.copy(selectedPrModal = prWithImage) }
+            if (imageBytes == null) {
+                viewModelScope.launch {
+                    imageLoader.loadPrImage(pr.id)
+                        .onSuccess { bytes ->
+                            _state.update { state ->
+                                state.selectedPrModal?.let { current ->
+                                    if (current.pr.id == pr.id) {
+                                        state.copy(selectedPrModal = current.copy(imageBytes = bytes))
+                                    } else state
+                                } ?: state
+                            }
                         }
-                    }
+                        .onFailure {
+                            _state.update { s ->
+                                s.selectedPrModal?.let { current ->
+                                    if (current.pr.id == pr.id) {
+                                        s.copy(
+                                            selectedPrModal = current.copy(imageLoadFailed = true),
+                                            lastError = ApiError(it.message ?: "Image not available", "?", null)
+                                        )
+                                    } else s
+                                } ?: s.copy(lastError = ApiError(it.message ?: "Image load failed", "?", null))
+                            }
+                        }
+                }
+            }
+        }.onFailure {
+            _state.update { s ->
+                s.copy(lastError = ApiError(it.message ?: "Could not open PR", "?", null))
             }
         }
     }
 
     fun dismissPrModal() {
         _state.update { it.copy(selectedPrModal = null) }
+    }
+
+    fun retryPrImage(prId: String) {
+        _state.update { s ->
+            s.selectedPrModal?.let { current ->
+                if (current.pr.id == prId) s.copy(selectedPrModal = current.copy(imageLoadFailed = false))
+                else s
+            } ?: s
+        }
+        viewModelScope.launch {
+            imageLoader.loadPrImage(prId)
+                .onSuccess { bytes ->
+                    _state.update { state ->
+                        state.selectedPrModal?.let { current ->
+                            if (current.pr.id == prId) {
+                                state.copy(selectedPrModal = current.copy(imageBytes = bytes, imageLoadFailed = false))
+                            } else state
+                        } ?: state
+                    }
+                }
+                .onFailure {
+                    _state.update { s ->
+                        s.selectedPrModal?.let { current ->
+                            if (current.pr.id == prId) {
+                                s.copy(selectedPrModal = current.copy(imageLoadFailed = true))
+                            } else s
+                        } ?: s
+                    }
+                }
+        }
     }
 
     fun refresh() {

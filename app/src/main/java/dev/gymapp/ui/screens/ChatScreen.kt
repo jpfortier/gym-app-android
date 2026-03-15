@@ -61,7 +61,7 @@ import dev.gymapp.ui.components.AppSnackbarHost
 import dev.gymapp.api.models.ApiError
 import dev.gymapp.ui.chat.ChatRole
 import dev.gymapp.ui.chat.ChatViewModel
-import dev.gymapp.ui.chat.PrImageModal
+import dev.gymapp.ui.chat.SafePrImageModal
 import dev.gymapp.ui.chat.PrWithImage
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
@@ -174,39 +174,40 @@ fun ChatScreen(
                     .graphicsLayer { clip = false }
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(MaterialTheme.colorScheme.outline)
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surface)
-                        .padding(horizontal = 16.dp, vertical = 10.dp)
-                        .graphicsLayer { clip = false },
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                BottomBarMic(
-                    isRecording = isRecording,
-                    onVoiceTap = {
-                        if (isRecording) {
-                            scope.launch {
-                                audioRecorder.stopAndGetBase64().onSuccess { base64 ->
-                                    viewModel.sendAudio(base64)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
+                            .background(MaterialTheme.colorScheme.outline)
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surface)
+                            .padding(horizontal = 16.dp, vertical = 10.dp)
+                            .graphicsLayer { clip = false },
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(modifier = Modifier.size(48.dp))
+                        BottomBarMic(
+                            isRecording = isRecording,
+                            onVoiceTap = {
+                                if (isRecording) {
+                                    scope.launch {
+                                        audioRecorder.stopAndGetBase64().onSuccess { base64 ->
+                                            viewModel.sendAudio(base64)
+                                        }
+                                        isRecording = false
+                                    }
+                                } else {
+                                    isRecording = true
+                                    permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                                 }
-                                isRecording = false
                             }
-                        } else {
-                            isRecording = true
-                            permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                        }
+                        )
                     }
-                )
-            }
-            }
+                }
                 Image(
                     painter = painterResource(R.drawable.logo),
                     contentDescription = "Dashboard",
@@ -214,7 +215,7 @@ fun ChatScreen(
                         .align(Alignment.BottomStart)
                         .padding(start = 16.dp, bottom = 16.dp)
                         .offset(y = 10.dp)
-                        .size(105.dp)
+                        .size(158.dp)
                         .clickable { onOpenDashboard() }
                 )
             }
@@ -306,9 +307,11 @@ fun ChatScreen(
             }
 
             state.pendingPrModal?.let { prs ->
-                PrImageModal(
+                SafePrImageModal(
                     prs = prs,
-                    onDismiss = { viewModel.dismissPrModal() }
+                    onDismiss = { viewModel.dismissPrModal() },
+                    onError = { msg -> scope.launch { snackbarHostState.showSnackbar(msg) } },
+                    onRetry = { prId -> viewModel.retryPrImage(prId) }
                 )
             }
         }

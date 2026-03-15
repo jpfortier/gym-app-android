@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -46,7 +47,8 @@ private const val WIDTH_FRACTION = 0.9f
 
 data class PrWithImage(
     val pr: PersonalRecord,
-    val imageBytes: ByteArray? = null
+    val imageBytes: ByteArray? = null,
+    val imageLoadFailed: Boolean = false
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -57,13 +59,58 @@ data class PrWithImage(
             if (other.imageBytes == null) return false
             if (!imageBytes.contentEquals(other.imageBytes)) return false
         } else if (other.imageBytes != null) return false
+        if (imageLoadFailed != other.imageLoadFailed) return false
         return true
     }
 
     override fun hashCode(): Int {
         var result = pr.hashCode()
         result = 31 * result + (imageBytes?.contentHashCode() ?: 0)
+        result = 31 * result + imageLoadFailed.hashCode()
         return result
+    }
+}
+
+@Composable
+fun SafePrImageModal(
+    prs: List<PrWithImage>,
+    onDismiss: () -> Unit,
+    onError: ((String) -> Unit)? = null,
+    onRetry: ((prId: String) -> Unit)? = null,
+    modifier: Modifier = Modifier
+) {
+    try {
+        PrImageModal(prs = prs, onDismiss = onDismiss, onRetry = onRetry, modifier = modifier)
+    } catch (e: Throwable) {
+        onError?.invoke(e.message ?: "Could not display image")
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.6f))
+                .clickable(enabled = true, onClick = onDismiss),
+            contentAlignment = Alignment.Center
+        ) {
+            Card(
+                modifier = Modifier.padding(24.dp),
+                onClick = { },
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Could not display image",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Default.Close, contentDescription = "Close")
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -71,11 +118,13 @@ data class PrWithImage(
 fun PrImageModal(
     prs: List<PrWithImage>,
     onDismiss: () -> Unit,
+    onRetry: ((prId: String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var currentIndex by remember { mutableIntStateOf(0) }
     val pr = prs.getOrNull(currentIndex) ?: return
     val hasImage = pr.imageBytes != null
+    val loadFailed = pr.imageLoadFailed
 
     val config = LocalConfiguration.current
     val screenWidthDp = config.screenWidthDp.dp
@@ -151,8 +200,39 @@ fun PrImageModal(
                                         model = imageRequest,
                                         contentDescription = "${pr.pr.exerciseName} PR image",
                                         modifier = Modifier.fillMaxSize(),
-                                        contentScale = ContentScale.Crop
+                                        contentScale = ContentScale.Crop,
+                                        error = {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .background(FOOTER_BG),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    text = "Could not load image",
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                        }
                                     )
+                                }
+                            } else if (loadFailed) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Text(
+                                        text = "Image not available",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    onRetry?.let { retry ->
+                                        TextButton(onClick = { retry(pr.pr.id) }) {
+                                            Text("Retry")
+                                        }
+                                    }
                                 }
                             } else {
                                 CircularProgressIndicator(
@@ -212,7 +292,7 @@ fun PrImageModal(
     }
 }
 
-private fun formatPrCaption(pr: PersonalRecord): String {
+private fun formatPrCaption(pr: PersonalRecord): String = runCatching {
     val variant = if (pr.variantName == "standard") "" else " (${pr.variantName})"
-    return "${pr.exerciseName}$variant ${pr.weight.toInt()}×${pr.reps}"
-}
+    "${pr.exerciseName}$variant ${pr.weight.toInt()}×${pr.reps}"
+}.getOrElse { "PR" }

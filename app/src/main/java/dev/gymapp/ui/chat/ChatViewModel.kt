@@ -203,22 +203,64 @@ class ChatViewModel(
         }
     }
 
-    private fun showPrModalIfNeeded(prs: List<PersonalRecord>?) {
-        prs?.takeIf { it.isNotEmpty() }?.let { list ->
-            val initial = list.map { PrWithImage(pr = it, imageBytes = null) }
-            _state.update { it.copy(pendingPrModal = initial) }
-            list.forEach { pr ->
-                viewModelScope.launch {
-                    imageLoader.loadPrImage(pr.id)
-                        .onSuccess { bytes ->
-                            _state.update { state ->
-                                val updated = state.pendingPrModal?.map { p ->
-                                    if (p.pr.id == pr.id) p.copy(imageBytes = bytes) else p
-                                }
-                                state.copy(pendingPrModal = updated)
-                            }
+    fun retryPrImage(prId: String) {
+        _state.update { s ->
+            val updated = s.pendingPrModal?.map { p ->
+                if (p.pr.id == prId) p.copy(imageLoadFailed = false) else p
+            }
+            s.copy(pendingPrModal = updated)
+        }
+        viewModelScope.launch {
+            imageLoader.loadPrImage(prId)
+                .onSuccess { bytes ->
+                    _state.update { state ->
+                        val updated = state.pendingPrModal?.map { p ->
+                            if (p.pr.id == prId) p.copy(imageBytes = bytes, imageLoadFailed = false) else p
                         }
+                        state.copy(pendingPrModal = updated)
+                    }
                 }
+                .onFailure {
+                    _state.update { s ->
+                        val updated = s.pendingPrModal?.map { p ->
+                            if (p.pr.id == prId) p.copy(imageLoadFailed = true) else p
+                        }
+                        s.copy(pendingPrModal = updated)
+                    }
+                }
+        }
+    }
+
+    private fun showPrModalIfNeeded(prs: List<PersonalRecord>?) {
+        runCatching {
+            prs?.takeIf { it.isNotEmpty() }?.let { list ->
+                val initial = list.map { PrWithImage(pr = it, imageBytes = null) }
+                _state.update { it.copy(pendingPrModal = initial) }
+                list.forEach { pr ->
+                    viewModelScope.launch {
+                        imageLoader.loadPrImage(pr.id)
+                            .onSuccess { bytes ->
+                                _state.update { state ->
+                                    val updated = state.pendingPrModal?.map { p ->
+                                        if (p.pr.id == pr.id) p.copy(imageBytes = bytes) else p
+                                    }
+                                    state.copy(pendingPrModal = updated)
+                                }
+                            }
+                            .onFailure {
+                                _state.update { s ->
+                                    val updated = s.pendingPrModal?.map { p ->
+                                        if (p.pr.id == pr.id) p.copy(imageLoadFailed = true) else p
+                                    }
+                                    s.copy(pendingPrModal = updated)
+                                }
+                            }
+                    }
+                }
+            }
+        }.onFailure {
+            _state.update { s ->
+                s.copy(lastError = ApiError(it.message ?: "Could not show PR", "?", null))
             }
         }
     }
